@@ -2,9 +2,21 @@ const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
 const axios = require('axios');
+const app = express();
+const WebSocket = require('ws');
+const PORT = 3000;
+const wss = new WebSocket.Server({port: 8080});
 
 let pointsPool = 0;
 let intervalID;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+wss.on('connection', (ws)=> {
+    console.log('Widget Connexted');
+});
 
 async function getTwitchToken() {
     const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
@@ -21,19 +33,19 @@ async function getViewerCount() {
     return 5 
 }
 
-async function viewerMultiplier(){
+async function viewerMultiplier() {
     const viewers = await getViewerCount();
     return 1 + Math.log(viewers) * 0.5;
 }
 
-async function tick(){
+async function tick() {
     const multiplier = await viewerMultiplier();
     //change this at your will, it can be `pointsPool += yourVariable * multiplier`
     pointsPool += multiplier;
-    console.log(`Points: ${pointsPool} | Multiplier: ${multiplier}`);
+    console.log(`Points: ${Math.floor(pointsPool)} | Multiplier: ${Math.floor(multiplier)}`);
 }
 
-function startInterval (){
+function startInterval () {
     if (intervalID){
     clearInterval(intervalID);
     }
