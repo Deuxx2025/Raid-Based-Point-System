@@ -42,6 +42,17 @@ async function tick() {
     const multiplier = await viewerMultiplier();
     //change this at your will, it can be `pointsPool += yourVariable * multiplier`
     pointsPool += multiplier;
+
+    const data = JSON.stringify({
+        points: Math.floor(pointsPool), 
+        multiplier: Math.floor(multiplier)
+    });
+
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(data);
+        }
+    })
     console.log(`Points: ${Math.floor(pointsPool)} | Multiplier: ${Math.floor(multiplier)}`);
 }
 
