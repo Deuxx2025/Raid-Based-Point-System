@@ -39,13 +39,16 @@ async function viewerMultiplier() {
 }
 
 async function tick() {
+    const previousPool = pointsPool
     const multiplier = await viewerMultiplier();
     //change this at your will, it can be `pointsPool += yourVariable * multiplier`
     pointsPool += multiplier;
+    const gained = Math.floor(pointsPool) - Math.floor(previousPool);
 
     const data = JSON.stringify({
         points: Math.floor(pointsPool), 
-        multiplier: Math.floor(multiplier)
+        multiplier: Math.floor(multiplier),
+        gained: gained
     });
 
     wss.clients.forEach((client) => {

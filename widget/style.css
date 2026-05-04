@@ -31,3 +31,24 @@ body {
     gap: 5px;
     font-size: 8px;
 }
+
+.floating-points {
+    position: absolute;
+    color: gold;
+    font-size: 10px;
+    text-shadow: 2px 2px 0px black;
+    animation: floatUp 1.5s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+}
