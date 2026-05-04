@@ -9,6 +9,7 @@ const wss = new WebSocket.Server({port: 8080});
 
 let pointsPool = 0;
 let intervalID;
+let twitchToken;
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -29,12 +30,24 @@ async function getTwitchToken() {
     return response.data.access_token; 
 }
 
-async function getViewerCount() {
-    return 5 
+async function getViewerCount(token) {
+    const response = await axios.get('https://api.twitch.tv/helix/streams', {
+        params: {
+            user_login: process.env.TWITCH_USERNAME
+        }, 
+        headers: {
+            'Client-ID': process.env.TWITCH_CLIENT_ID,
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    const stream = response.data.data[0]
+    return stream ? stream.viewer_count : 0
 }
 
 async function viewerMultiplier() {
-    const viewers = await getViewerCount();
+    const viewers = await getViewerCount(twitchToken);
+    if (viewers === 0) return 1
     return 1 + Math.log(viewers) * 0.5;
 }
 
@@ -65,4 +78,10 @@ function startInterval () {
     }
     intervalID = setInterval(tick, 60000)
 }
-startInterval()
+
+async function startServer() {
+    twitchToken = await getTwitchToken();
+    console.log('Twitch token acquired');
+    startInterval()
+}
+startServer()
