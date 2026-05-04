@@ -50,7 +50,7 @@ To have the 2 factor active you'll most likely need an authenticator app such as
 
 Once you're inside go to "Your Console" which is on the top right corner below your profile picture.
 
-Then click on "Register Your Application
+Then click on "Register Your Application"
 
 Fill the information: Place the name of the app (however you wanna call it), OAuth Redirect URL: http://localhost, Category: Application Integration.
 

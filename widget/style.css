@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: transparent;
+    font-family: 'Press Start 2P', cursive;
+    color: white;
+    text-shadow: 3px 3px 0px black;
+}
+
+#widget-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+}
+
+#coin-sack {
+    font-size: 40px;
+    cursor: pointer;
+}
+
+#point-display {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 8px;
+}

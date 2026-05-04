@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>RBPS Widget</title>
 </head>
 <body>
-    <div id="points">Points: 0</div>
-    <div id="multiplier">Multiplier: x1</div> 
+    <div id="widget-container">
+        <div id="coin-sack">🪙</div>
+        <div id="point-display">
+            <div id="points">Points: 0</div>
+            <div id="multiplier">Multiplier: x1</div> 
+        </div>
+    </div>
     <script> 
         const socket = new WebSocket('ws://localhost:8080');
                                     
