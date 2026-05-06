@@ -7,6 +7,7 @@
     <title>RBPS Widget</title>
 </head>
 <body>
+    <audio id="soundbit" src="../sounds/metal-pipe.mp3"></audio>
     <div id="widget-container">
         <div id="coin-sack">🪙</div>
         <div id="point-display">
@@ -31,9 +32,16 @@
                                     
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            document.getElementById('points').textContent = `Points: ${data.points}`;
-            document.getElementById('multiplier').textContent = `Multiplier: x${data.multiplier}`;
-            showFloatingPoints(data.gained);
+
+            if (data.points !== undefined){
+                document.getElementById('points').textContent = `Points: ${data.points}`;
+                document.getElementById('multiplier').textContent = `Multiplier: x${data.multiplier}`;
+                showFloatingPoints(data.gained);
+            }
+            
+            if (data.sound) {
+                document.getElementById('soundbit').play()
+            }
         }
     </script>
 </body>

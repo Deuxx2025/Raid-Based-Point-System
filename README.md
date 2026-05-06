@@ -30,6 +30,7 @@ The steps are:
 -Download the dependencies(npm install)
 -Initialize the server(nodemon main.js)
 -Open the widget with Live Server
+-Bot commands
 -Tweak values if you want
 
 ## Clone the repo 
@@ -102,7 +103,7 @@ Once you have that then you need to add these following packages like this:
 ```
 npm install express dotenv axios tmi.js
 ```
-Express is your back-end server, dotenv is what gives you access to the .env information and axios makes request to the Twitch API, tmi.js is the one responsible to make the bot write things in chat and also to have commands in chat. Also a file called package-lock.json will be created with this installs, this is a place where your dependencies lives 
+Express is your back-end server, dotenv is what gives you access to the .env information, axios makes request to the Twitch API and tmi.js is the one responsible to make the bot write things in chat and also to have commands in chat. Also a file called package-lock.json will be created with this installs, this is a place where your dependencies lives 
 
 Now you're missing some quality of life improvements and a thing that I missed: 
 
@@ -126,6 +127,25 @@ It has some logic to make the point system to work and it sends that information
 
 ## Open the widget with Live Server
 Install the Live Server extension in Visual Studio Code. Once installed, right click the `widget.html` and select 'Open with Live Server'. This will open in your web browser at `localhost:5500` where you can see it running live. Also this 5500 port overrides some safety features that might not let you check your project completely.
+
+## Bot commands
+Right now the bot has 2 commands `!menu` and `!redeem`, the `menu` lists the options that the point system has and you can select the option with the `redeem` tag for example 
+
+```
+!menu 
+!redeem soundbit (10 points) play a sound | !redeem clip (50 points) play a clip...
+!redeem soundbit 
+*sound plays*
+```
+
+There are also safeguards like when the user doesn't have the points or if it has typo the bot will respond, please feel free to check the code.
+
+One last important thing, in order to avoid the copyright infringement I decided to add /sounds to the .gitignore file because most likely the sounds that I'll use have a no redistribution clause so for you to use the feature please create a `sounds` folder at the root of the project and then add a sound that you want (since multiple sounds aren't supported yet), In widget.html find the `audio` tag and replace put-your-sound-here.mp3 with your actual filename (use Ctrl + F to find it). 
+
+```
+<audio id="soundbit" src="../sounds/put-your-sound-here.mp3"></audio>
+```
+
 
 ## Tweak values if you want
 We've reached the end part of this little guide, it's been wild working on this project, but essentially this project is as much mine (as author) that is yours as well, please feel free to tweak values here and there because your needs are not the same as my needs. 

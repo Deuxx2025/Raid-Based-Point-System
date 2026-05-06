@@ -14,6 +14,12 @@ const client = new tmi.Client({
     },
     channels: [process.env.TWITCH_USERNAME]
 });
+const redemptions = [
+    { name : 'soundbit', cost : 10, description : 'Play a sound bit' },
+    { name : 'clip', cost : 50, description : 'Play a small clip' },
+    { name : 'nextsong', cost : 150, description : 'Play a song on YouTube' },
+    { name : 'endstream', cost : 100000, description : 'Kill the stream' }
+];
 
 let pointsPool = 0;
 let intervalID;
@@ -25,6 +31,57 @@ app.listen(PORT, () => {
 
 wss.on('connection', (ws)=> {
     console.log('Widget Connexted');
+});
+
+client.on('message', (channel, tag, message, self) => {
+    if (self) return;
+
+    if (message.toLowerCase() === '!menu') {
+        const menuMessage = redemptions
+            .map(r => `!redeem ${r.name} (${r.cost}) - ${r.description}`)
+            .join(' | ');
+        client.say(channel, `RBPS Menu: ${menuMessage}`)
+    }
+
+    if (message.startsWith('!redeem')) {
+        const command = message.split(' ')[1];
+        const found = redemptions.find(r => r.name === command);
+
+        if (!found) {
+            client.say(message, `Unknown redemption. Type !menu to see available options.`);
+        }
+
+        if (found && found.name !== 'soundbit') {
+            client.say(channel, 'This redemption is not available yet, stay tunned!');
+            return;
+        }
+    }
+
+    if (message.toLowerCase() === '!test soundbit') {
+        const isStreamer = tag.username === process.env.TWITCH_USERNAME.toLowerCase();
+        if (!isStreamer) return;
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({sound: 'soundbit'}));
+            }
+        });
+    }
+
+    if (message.toLowerCase() === '!redeem soundbit') {
+        const redemption = redemptions.find(r => r.name === 'soundbit');
+        if (pointsPool < redemption.cost) {
+            client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
+            return;
+        }
+        pointsPool -= redemption.cost;
+        client.say(channel, 'Sound bit redeemed, current pool: ' + Math.floor(pointsPool));
+
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({sound: 'soundbit'}));
+            }
+        });
+    }
 });
 
 async function getTwitchToken() {
