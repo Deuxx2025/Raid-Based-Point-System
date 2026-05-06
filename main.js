@@ -6,6 +6,14 @@ const app = express();
 const WebSocket = require('ws');
 const PORT = 3000;
 const wss = new WebSocket.Server({port: 8080});
+const tmi = require('tmi.js')
+const client = new tmi.Client({
+    identity: {
+        username: process.env.TWITCH_BOT_USERNAME,
+        password: process.env.TWITCH_BOT_TOKEN
+    },
+    channels: [process.env.TWITCH_USERNAME]
+});
 
 let pointsPool = 0;
 let intervalID;
@@ -82,6 +90,8 @@ function startInterval () {
 async function startServer() {
     twitchToken = await getTwitchToken();
     console.log('Twitch token acquired');
+    await client.connect();
+    console.log('Bot connected to chat')
     startInterval()
 }
 startServer()

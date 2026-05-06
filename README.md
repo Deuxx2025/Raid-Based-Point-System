@@ -56,15 +56,35 @@ Fill the information: Place the name of the app (however you wanna call it), OAu
 
 Once that's done you'll see a section with the name of the app, click on administer and copy paste the client ID and click on "New Secret" to have the Client Secret, save that information on a safe place and also that has easy access such as the notepad because you're going to use that in the next step.
 
-## Set the .env file
-Here's where the client ID and secret is used, this is a very delicate file that anyone who has access to it can hijack your account, that's why the .gitignore that I set up in the repo doesn't track it. But at the same time it's important to have it so that you can prove to the API that your application is legit. 
+In addition to have a working chat bot you'll need to create a new account, but if you don't want to create a new email you can use this trick, which consists of using your already existing account (IMPORTANT NOTE: this only works if your account uses gmail which lets be honest everyone does), `account+botname@gmail.com`, Make sure to also set up the 2 factor authentication. 
 
-You'll need 3 global variables and paste the values after the = sign: 
+Following this chat bot creation you'll need to have authorization using `tmi` which it's going to be further explained. But for now the oficial `tmi` page is dead, some people have used the page to set up OAuth for different things and the scope has gone nuclear hence the creator pulled the plug, now we need to search for a way to get that OAuth using the Twitch's documentation for developers, copy this url and make sure to be signed in with your bot account: 
+
+```
+https://id.twitch.tv/oauth2/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost&response_type=token&scope=chat:read+chat:edit
+```
+
+Also replace the `YOUR_CLIENT_ID` with the ID you received from the previous step probably you have that information on your notepad (Client ID). It'll ask you for permission, it's essentially saying that an unknown app wants to use your account (the bot account) to write things in chat, once you click on accept it'll redirect you to an unreachable page but the url has the authentication key. 
+
+The unreachable part is because we set the localhost at the beginning, normal behavior don't worry but do copy the part that is in between the `access_token=` and the `&scope` like this: 
+
+```
+http://localhost/#access_token=xxxxxxxxxxxxxx&scope=chat%3Aread+chat%3Aedit&token_type=bearer
+```
+
+Now with that information you're ready to set the .env.
+
+## Set the .env file
+Here's where the client ID, client secret and bot OAuth key is used, this is a very delicate file that anyone who has access to it can hijack your account, that's why the .gitignore that I set up in the repo doesn't track it. But at the same time it's important to have it so that you can prove to the API that your application is legit. 
+
+You'll need the following global variables and paste the values after the = sign, the bot variable has a slight difference, you need to add the `oauth:` before the actual key as it follows: 
 
 ```
 TWITCH_CLIENT_ID=
 TWITCH_CLIENT_SECRET=
 TWITCH_USERNAME=
+TWITCH_BOT_USERNAME=
+TWITCH_BOT_TOKEN=oauth:
 ```
 
 
@@ -77,12 +97,12 @@ npm init -y
 
 This command lets you create the package.json which is vital for the Node.js server and also the `-y` flag lets you skip towards the end because essentially it'll ask you to name the server, put signature, add a description, basically things that you don't need to worry. 
 
-Once you have that then you need to add these 3 packages like this: 
+Once you have that then you need to add these following packages like this: 
 
 ```
-npm install express dotenv axios
+npm install express dotenv axios tmi.js
 ```
-Express is your back-end server, dotenv is what gives you access to the .env information and axios makes request to the Twitch API. Also a file called package-lock.json will be created with this installs, this is a place where your dependencies lives 
+Express is your back-end server, dotenv is what gives you access to the .env information and axios makes request to the Twitch API, tmi.js is the one responsible to make the bot write things in chat and also to have commands in chat. Also a file called package-lock.json will be created with this installs, this is a place where your dependencies lives 
 
 Now you're missing some quality of life improvements and a thing that I missed: 
 
