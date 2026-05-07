@@ -7,6 +7,7 @@ const WebSocket = require('ws');
 const PORT = 3000;
 const wss = new WebSocket.Server({port: 8080});
 const tmi = require('tmi.js')
+const fs = require('fs')
 const client = new tmi.Client({
     identity: {
         username: process.env.TWITCH_BOT_USERNAME,
@@ -15,8 +16,7 @@ const client = new tmi.Client({
     channels: [process.env.TWITCH_USERNAME]
 });
 const redemptions = [
-    { name : 'soundbit', cost : 10, description : 'Play a sound bit' },
-    { name : 'clip', cost : 50, description : 'Play a small clip' },
+    { name : 'soundbits', cost : 10, description : 'Play a sound bit' },
     { name : 'nextsong', cost : 150, description : 'Play a song on YouTube' },
     { name : 'endstream', cost : 100000, description : 'Kill the stream' }
 ];
@@ -38,11 +38,14 @@ client.on('message', (channel, tag, message, self) => {
 
     if (message.toLowerCase() === '!menu') {
         const menuMessage = redemptions
-            .map(r => `!redeem ${r.name} (${r.cost}) - ${r.description}`)
+            .map(r => `! ${r.name} (${r.cost}) - ${r.description}`)
             .join(' | ');
         client.say(channel, `RBPS Menu: ${menuMessage}`)
     }
 
+    /*
+    !redeem system removed, kept for reference
+    Probably have a similar safeguards for other instances
     if (message.startsWith('!redeem')) {
         const command = message.split(' ')[1];
         const found = redemptions.find(r => r.name === command);
@@ -55,6 +58,15 @@ client.on('message', (channel, tag, message, self) => {
             client.say(channel, 'This redemption is not available yet, stay tunned!');
             return;
         }
+    }
+    */
+
+    if (message.toLowerCase() === '!soundbits') {
+        const sounds = fs.readFileSync('./sounds')
+            .filter(file => file.endsWith('mp3'))
+            .map(file => file.replace('.mp3', ''))
+            .join(' | ')
+        client.say(channel, `Available sounds: ${sounds} | use '!play soundname' to play`)
     }
 
     if (message.toLowerCase() === '!test soundbit') {
