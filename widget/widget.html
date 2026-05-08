@@ -7,7 +7,6 @@
     <title>RBPS Widget</title>
 </head>
 <body>
-    <audio id="soundbit" src="../sounds/metal-pipe.mp3"></audio>
     <div id="widget-container">
         <div id="coin-sack">🪙</div>
         <div id="point-display">
@@ -40,7 +39,8 @@
             }
             
             if (data.sound) {
-                document.getElementById('soundbit').play()
+                const audio = new Audio(`../sounds/${data.sound}.mp3`);
+                audio.play();
             }
         }
     </script>

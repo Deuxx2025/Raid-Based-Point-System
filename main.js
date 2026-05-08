@@ -24,6 +24,21 @@ const redemptions = [
 let pointsPool = 0;
 let intervalID;
 let twitchToken;
+let availableSounds = []
+
+fs.readdir('sounds', (err, files) => {
+    if (err) {
+        console.log(err);
+        return;
+    }
+    else
+    {
+        availableSounds = files 
+            .filter(file => file.endsWith('.mp3'))
+            .map(file => file.replace('.mp3', ''));
+        console.log('Sounds loaded', availableSounds);
+    }
+})
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -38,7 +53,7 @@ client.on('message', (channel, tag, message, self) => {
 
     if (message.toLowerCase() === '!menu') {
         const menuMessage = redemptions
-            .map(r => `! ${r.name} (${r.cost}) - ${r.description}`)
+            .map(r => `!${r.name} (${r.cost}) - ${r.description}`)
             .join(' | ');
         client.say(channel, `RBPS Menu: ${menuMessage}`)
     }
@@ -62,13 +77,11 @@ client.on('message', (channel, tag, message, self) => {
     */
 
     if (message.toLowerCase() === '!soundbits') {
-        const sounds = fs.readFileSync('./sounds')
-            .filter(file => file.endsWith('mp3'))
-            .map(file => file.replace('.mp3', ''))
-            .join(' | ')
-        client.say(channel, `Available sounds: ${sounds} | use '!play soundname' to play`)
+        client.say(channel, `Available sounds: ${availableSounds.join(' | ')} | use !play soundname to play`)
     }
 
+    /*
+    depricated command, view only as reference
     if (message.toLowerCase() === '!test soundbit') {
         const isStreamer = tag.username === process.env.TWITCH_USERNAME.toLowerCase();
         if (!isStreamer) return;
@@ -78,19 +91,29 @@ client.on('message', (channel, tag, message, self) => {
             }
         });
     }
+    */
 
-    if (message.toLowerCase() === '!redeem soundbit') {
-        const redemption = redemptions.find(r => r.name === 'soundbit');
+    if (message.toLowerCase().startsWith('!play')) {
+        const soundName = message.split(' ')[1];
+        const soundExists = fs.existsSync(`./sounds/${soundName}.mp3`);
+        const redemption = redemptions.find(r => r.name === 'soundbits')
+
+        if (!soundExists) {
+            client.say(channel, 'Sound not found, please type !soundbits to see available sounds');
+            return
+        }
+
         if (pointsPool < redemption.cost) {
             client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
             return;
         }
+
         pointsPool -= redemption.cost;
-        client.say(channel, 'Sound bit redeemed, current pool: ' + Math.floor(pointsPool));
+        client.say(channel, `Playing ${soundName}, current pool: ` + Math.floor(pointsPool));
 
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({sound: 'soundbit'}));
+                client.send(JSON.stringify({sound: soundName}));
             }
         });
     }

@@ -129,23 +129,24 @@ It has some logic to make the point system to work and it sends that information
 Install the Live Server extension in Visual Studio Code. Once installed, right click the `widget.html` and select 'Open with Live Server'. This will open in your web browser at `localhost:5500` where you can see it running live. Also this 5500 port overrides some safety features that might not let you check your project completely.
 
 ## Bot commands
-Right now the bot has 2 commands `!menu` and `!redeem`, the `menu` lists the options that the point system has and you can select the option with the `redeem` tag for example 
+If you use the command `!menu` you can see all actions, right now the `!soundbits` command is fully implemented, if you use it, the chat bot will tell you all the available sounds and the command `!play` to actually play the sound, then the other actions `!nextsong` and `!endstream` is coming next. 
+
+This is an example of the command flow:
 
 ```
 !menu 
-!redeem soundbit (10 points) play a sound | !redeem clip (50 points) play a clip...
-!redeem soundbit 
-*sound plays*
+!soundbits (10 points) play a sound | !nextsong (150 points) choose next song...
+!soundbits 
+Available sounds: sound1 | sound2 | sound3... | use !play soundname to play
+!play sound1
+*Plays sound1*
+!play 1sound
+Sound not found, please use !soundbits to see available sounds
 ```
 
-There are also safeguards like when the user doesn't have the points or if it has typo the bot will respond, please feel free to check the code.
+There are also safeguards like when the user doesn't have the points or if there's a typo the bot will respond, please feel free to check the code.
 
-One last important thing, in order to avoid the copyright infringement I decided to add /sounds to the .gitignore file because most likely the sounds that I'll use have a no redistribution clause so for you to use the feature please create a `sounds` folder at the root of the project and then add a sound that you want (since multiple sounds aren't supported yet), In widget.html find the `audio` tag and replace put-your-sound-here.mp3 with your actual filename (use Ctrl + F to find it). 
-
-```
-<audio id="soundbit" src="../sounds/put-your-sound-here.mp3"></audio>
-```
-
+One last important thing, in order to avoid the copyright infringement I decided to add /sounds to the .gitignore file because most likely the sounds that I'll use have a no redistribution clause so for you to use the feature please create a `sounds` folder at the root of the project and then add a sound that you want, make sure that the name convention don't have spaces, I personally use the following `metal-pipe.mp3` | `screaming-bird.mp3`.
 
 ## Tweak values if you want
 We've reached the end part of this little guide, it's been wild working on this project, but essentially this project is as much mine (as author) that is yours as well, please feel free to tweak values here and there because your needs are not the same as my needs. 
