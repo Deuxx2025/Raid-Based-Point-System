@@ -86,17 +86,17 @@ https://console.cloud.google.com
 
 The next step is to create a `new project`, on the top left corner next to the Google Cloud logo there is an option called `select a project`. A small window will emerge and on its top right corner the `new project` option will appear. Then just fill the project name, I called it by the acronym RBPS, create it and don't worry if you don't know what to put in the `Parent resource` leave it as it is. 
 
-On the top part you'll find a search bar, use it to search the YouTube DATA API v3, then hit enable, it will download something and now you'll have 2 thing on your `Notifications`, the `creation of the project` and the `enable youtube service`, on the left side select `Credentials` and then `Create credentials`, select the OAuth client ID, to create a google OAuth you'll need to set up a managment of screens, since you're not working for google the only option is to make it public, name the project, put email to contact and then hit create, it will let you in the page to create the OAuth. On the metrics part the is a lone option called create OAuth client. 
+On the top part you'll find a search bar, use it to search the YouTube DATA API v3, then hit enable, it will enable the API for your project and now you'll have 2 thing on your `Notifications`, the `creation of the project` and the `enable youtube service`, on the left side select `Credentials` and then `Create credentials`, select the OAuth client ID, to create a google OAuth you'll need to set up a management of screens, since you're not working for google the only option is to make it public, name the project, put email to contact and then hit create, it will let you in the page to create the OAuth. On the metrics part the is a lone option called create OAuth client. 
 
-Inside that page select the `web aplication` type, fill out the name of the application, then you'll see 2 sections, the `Authorize JavaScript origins` and the `Authorize redirects URL`, you'll need to fill some URLs in this section.
+Inside that page select the `web application` type, fill out the name of the application, then you'll see 2 sections, the `Authorize JavaScript origins` and the `Authorize redirects URL`, you'll need to fill some URLs in this section.
 
-For the `Authorize JavaScript origins` put: 
+For the `Authorized JavaScript origins` put: 
 
 ```
 http://localhost
 ```
 
-And in `Authorize redirects URL`: 
+And in `Authorized redirects URL`: 
 
 ```
 http://localhost:3000/auth/callback
@@ -105,6 +105,8 @@ http://localhost:3000/auth/callback
 Once you hit create an important window will appear, there you'll have the `client secret` but the good thing is that the browser will let you download the thing as JSON, the majority of the things you can access it late but not the `client secret` so I recommend that you download it and save it somewhere accessible (not on the project folder unless you want to put it on the .gitignore).
 
 There's an option called `Audience` on the left side of the page, click on it, scroll down until you see `test users` and add users and put the Google/YouTube account (email). 
+
+Now for the last part I put a little part on the code that safeguards the project because you'll have a global variable called `YOUTUBE_REFRESH_TOKEN` (See `Set the .env file`) that is undefined so it'll crash everything, but it should send you a link on the terminal, once you enter access your YouTube account for the first time will send you to a page that said `CANNOT GET auth/callback` but just restart the server, and do the process one more time and check the terminal copy that key and paste it in the .env file.
 
 ## Set the .env file
 Here's where the client ID, client secret and bot OAuth key is used, this is a very delicate file that anyone who has access to it can hijack your account, that's why the .gitignore that I set up in the repo doesn't track it. But at the same time it's important to have it so that you can prove to the API that your application is legit. 
@@ -120,6 +122,7 @@ TWITCH_BOT_TOKEN=oauth:
 YOUTUBE_CLIENT_ID=
 YOUTUBE_CLIENT_SECRET=
 YOUTUBE_REDIRECT_URI=
+YOUTUBE_REFRESH_TOKEN=
 ```
 
 
@@ -135,9 +138,9 @@ This command lets you create the package.json which is vital for the Node.js ser
 Once you have that then you need to add these following packages like this: 
 
 ```
-npm install express dotenv axios tmi.js
+npm install express dotenv axios tmi.js googleapis
 ```
-Express is your back-end server, dotenv is what gives you access to the .env information, axios makes request to the Twitch API and tmi.js is the one responsible to make the bot write things in chat and also to have commands in chat. Also a file called package-lock.json will be created with this installs, this is a place where your dependencies lives 
+`Express` is your back-end server, `dotenv` is what gives you access to the .env information, `axios` makes request to the Twitch API, `tmi.js` is the one responsible to make the bot write things in chat and also to have commands in chat and `googleapis` is the one responsible to communicate to Google Cloud for OAuth. Also a file called package-lock.json will be created with this installs, this is a place where your dependencies lives 
 
 Now you're missing some quality of life improvements and a thing that I missed: 
 

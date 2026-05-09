@@ -6,8 +6,20 @@ const app = express();
 const WebSocket = require('ws');
 const PORT = 3000;
 const wss = new WebSocket.Server({port: 8080});
-const tmi = require('tmi.js')
-const fs = require('fs')
+const tmi = require('tmi.js');
+const fs = require('fs');
+const { google } = require('googleapis');
+const { oauth2 } = require('googleapis/build/src/apis/oauth2');
+const oauth2Client = new google.auth.OAuth2(
+    process.env.YOUTUBE_CLIENT_ID,
+    process.env.YOUTUBE_CLIENT_SECRET,
+    process.env.YOUTUBE_REDIRECT_URI
+);
+const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline', 
+    scope: ['https://www.googleapis.com/auth/youtube.readonly']
+});
+//console.log('Authorize your YouTube account by visiting: ', authUrl);
 const client = new tmi.Client({
     identity: {
         username: process.env.TWITCH_BOT_USERNAME,
@@ -24,7 +36,7 @@ const redemptions = [
 let pointsPool = 0;
 let intervalID;
 let twitchToken;
-let availableSounds = []
+let availableSounds = [];
 
 fs.readdir('sounds', (err, files) => {
     if (err) {
@@ -38,7 +50,7 @@ fs.readdir('sounds', (err, files) => {
             .map(file => file.replace('.mp3', ''));
         console.log('Sounds loaded', availableSounds);
     }
-})
+});
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -46,6 +58,21 @@ app.listen(PORT, () => {
 
 wss.on('connection', (ws)=> {
     console.log('Widget Connexted');
+});
+
+if (!process.env.YOUTUBE_REFRESH_TOKEN) {
+    console.log('Authorize your YouTube account by visiting:', authUrl);
+}
+
+app.get('/auth/callback', async (req, res) =>{
+    const { code } = req.query;
+    const { tokens } = await oauth2Client.getToken(code);
+    console.log('Refresh token', tokens.refresh_token);
+    res.send('Authorization successful! Check your terminal for the refresh token')
+});
+
+oauth2Client.setCredentials({
+    refresh_token: process.env.YOUTUBE_REFRESH_TOKEN
 });
 
 client.on('message', (channel, tag, message, self) => {
@@ -119,6 +146,16 @@ client.on('message', (channel, tag, message, self) => {
     }
 });
 
+async function getPlaylist() {
+    const youtube = google.youtube({ version: 'v3', auth: oauth2Client});
+    const response = await youtube.playlistItems.list({
+        part: 'snippet',
+        playlistId: 'LL',
+        maxResults: 50
+    });
+    return response.data.items;
+}
+
 async function getTwitchToken() {
     const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
         params: {
@@ -128,7 +165,7 @@ async function getTwitchToken() {
         }
     });
     return response.data.access_token; 
-}
+};
 
 async function getViewerCount(token) {
     const response = await axios.get('https://api.twitch.tv/helix/streams', {
@@ -143,13 +180,13 @@ async function getViewerCount(token) {
 
     const stream = response.data.data[0]
     return stream ? stream.viewer_count : 0
-}
+};
 
 async function viewerMultiplier() {
     const viewers = await getViewerCount(twitchToken);
     if (viewers === 0) return 1
     return 1 + Math.log(viewers) * 0.5;
-}
+};
 
 async function tick() {
     const previousPool = pointsPool
@@ -168,9 +205,9 @@ async function tick() {
         if (client.readyState === WebSocket.OPEN) {
             client.send(data);
         }
-    })
+    });
     console.log(`Points: ${Math.floor(pointsPool)} | Multiplier: ${Math.floor(multiplier)}`);
-}
+};
 
 function startInterval () {
     if (intervalID){
@@ -184,6 +221,8 @@ async function startServer() {
     console.log('Twitch token acquired');
     await client.connect();
     console.log('Bot connected to chat')
+    //const playlist = await getPlaylist();
+    //console.log('Playlist loaded: ', playlist.length, 'songs')
     startInterval()
-}
+};
 startServer()
