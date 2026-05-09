@@ -26,6 +26,7 @@ It's been very helpful in my ignorance in this part of programming, and also all
 The steps are:
 -Clone the repo
 -Get the Twitch keys
+-Get the YouTube keys
 -Set the .env file
 -Download the dependencies(npm install)
 -Initialize the server(nodemon main.js)
@@ -75,10 +76,40 @@ http://localhost/#access_token=xxxxxxxxxxxxxx&scope=chat%3Aread+chat%3Aedit&toke
 
 Now with that information you're ready to set the .env.
 
+## Get the YouTube keys
+
+First you need to enter to this link, this will lead you to Google Cloud and you need to login with your normal google account: 
+
+```
+https://console.cloud.google.com
+```
+
+The next step is to create a `new project`, on the top left corner next to the Google Cloud logo there is an option called `select a project`. A small window will emerge and on its top right corner the `new project` option will appear. Then just fill the project name, I called it by the acronym RBPS, create it and don't worry if you don't know what to put in the `Parent resource` leave it as it is. 
+
+On the top part you'll find a search bar, use it to search the YouTube DATA API v3, then hit enable, it will download something and now you'll have 2 thing on your `Notifications`, the `creation of the project` and the `enable youtube service`, on the left side select `Credentials` and then `Create credentials`, select the OAuth client ID, to create a google OAuth you'll need to set up a managment of screens, since you're not working for google the only option is to make it public, name the project, put email to contact and then hit create, it will let you in the page to create the OAuth. On the metrics part the is a lone option called create OAuth client. 
+
+Inside that page select the `web aplication` type, fill out the name of the application, then you'll see 2 sections, the `Authorize JavaScript origins` and the `Authorize redirects URL`, you'll need to fill some URLs in this section.
+
+For the `Authorize JavaScript origins` put: 
+
+```
+http://localhost
+```
+
+And in `Authorize redirects URL`: 
+
+```
+http://localhost:3000/auth/callback
+```
+
+Once you hit create an important window will appear, there you'll have the `client secret` but the good thing is that the browser will let you download the thing as JSON, the majority of the things you can access it late but not the `client secret` so I recommend that you download it and save it somewhere accessible (not on the project folder unless you want to put it on the .gitignore).
+
+There's an option called `Audience` on the left side of the page, click on it, scroll down until you see `test users` and add users and put the Google/YouTube account (email). 
+
 ## Set the .env file
 Here's where the client ID, client secret and bot OAuth key is used, this is a very delicate file that anyone who has access to it can hijack your account, that's why the .gitignore that I set up in the repo doesn't track it. But at the same time it's important to have it so that you can prove to the API that your application is legit. 
 
-You'll need the following global variables and paste the values after the = sign, the bot variable has a slight difference, you need to add the `oauth:` before the actual key as it follows: 
+You'll need the following global variables and paste the values after the = sign, open up the Google Cloud JSON, fill the information, the bot variable has a slight difference, you need to add the `oauth:` before the actual key as it follows: 
 
 ```
 TWITCH_CLIENT_ID=
@@ -86,6 +117,9 @@ TWITCH_CLIENT_SECRET=
 TWITCH_USERNAME=
 TWITCH_BOT_USERNAME=
 TWITCH_BOT_TOKEN=oauth:
+YOUTUBE_CLIENT_ID=
+YOUTUBE_CLIENT_SECRET=
+YOUTUBE_REDIRECT_URI=
 ```
 
 
