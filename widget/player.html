@@ -12,32 +12,53 @@
         const socket = new WebSocket('ws://localhost:8080');
 
         let player;
+        let pendingVideo = null;
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
                 height: 360,
                 width: 640,
+                playerVars: {
+                    autoplay: 1,
+                    mute: 1
+                },
                 events: {
                     'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
                 } 
             });
         }
 
+        function onPlayerError(event) {
+            console.log("Video error, skipping to next song");   
+            socket.send(JSON.stringify({ songEnded: true}));
+        }
+
         function onPlayerReady(event){
+            event.target.unMute();
+            if (pendingVideo) {
+                player.loadVideoById(pendingVideo);
+                pendingVideo = null;
+            }
             console.log("Player ready");
         }
 
         function onPlayerStateChange(event){
             if (event.data === YT.PlayerState.ENDED) {
-                console.log('Song ended')
+                socket.send(JSON.stringify({ songEnded: true}));
             }
         }
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            if (data.videoId) {
-                player.loadVideoById(data.videoId);
+            console.log('received', data)
+            if (data.type === 'song' && data.videoId) {
+                if (player) {
+                    player.loadVideoById(data.videoId);
+                } else {
+                    pendingVideo = data.videoId
+                }
             }
         }
     </script>

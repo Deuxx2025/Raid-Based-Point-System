@@ -10,6 +10,7 @@ const tmi = require('tmi.js');
 const fs = require('fs');
 const { google } = require('googleapis');
 const { oauth2 } = require('googleapis/build/src/apis/oauth2');
+const { title } = require('process');
 const oauth2Client = new google.auth.OAuth2(
     process.env.YOUTUBE_CLIENT_ID,
     process.env.YOUTUBE_CLIENT_SECRET,
@@ -29,15 +30,18 @@ const client = new tmi.Client({
 });
 const redemptions = [
     { name : 'soundbits', cost : 10, description : 'Play a sound bit' },
-    { name : 'nextsong', cost : 150, description : 'Play a song on YouTube' },
+    { name : 'nextsong', cost : 150, description : 'Queue a song - use !nextsong to browse' },
     { name : 'endstream', cost : 100000, description : 'Kill the stream' }
 ];
 
+let playbackMode = 'ordered';
+let currentIndex = 0;
 let pointsPool = 0;
 let intervalID;
 let twitchToken;
 let availableSounds = [];
 let streamPlaylist = [];
+let songQueue = [];
 
 fs.readdir('sounds', (err, files) => {
     if (err) {
@@ -57,8 +61,29 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-wss.on('connection', (ws)=> {
-    console.log('Widget Connexted');
+wss.on('connection', (ws) => {
+    console.log('Widget Connected');
+    console.log('Playlist length on connection:', streamPlaylist.length);
+
+    if (streamPlaylist.length > 0) {
+        const firstSong = getNextSong();
+        if (firstSong) {
+            ws.send(JSON.stringify({
+                type: 'song',
+                videoId: firstSong.snippet.resourceId.videoId,
+                title: firstSong.snippet.title
+            }));
+        }
+    }
+    
+
+    ws.on('message', (message) => {
+        const data = JSON.parse(message);
+        if (data.songEnded) {
+            const nextSong = getNextSong();
+            if (nextSong) playSong(nextSong); 
+        }
+    });
 });
 
 if (!process.env.YOUTUBE_REFRESH_TOKEN) {
@@ -106,6 +131,43 @@ client.on('message', (channel, tag, message, self) => {
 
     if (message.toLowerCase() === '!soundbits') {
         client.say(channel, `Available sounds: ${availableSounds.join(' | ')} | use !play soundname to play`)
+    }
+
+    if (message.toLowerCase().startsWith('!nextsong')) {
+        const page = parseInt(message.split(' ')[1]) || 1;
+        const start = (page - 1) * 10;
+        const end = start + 10;
+        const pageSongs = streamPlaylist.slice(start, end);
+
+        const songList = pageSongs 
+            .map((song, index) => {
+                const titleParts = song.snippet.title.split(' - ');
+                const title = (titleParts[1] || titleParts[0]).substring(0, 25)
+                return `${start + index + 1}.${title}`;
+            })
+            .join(' | ');
+        client.say(channel, `Songs (${start + 1}-${Math.min(end, streamPlaylist.length)}): ${songList} | !nextsong ${page + 1} for more | use !queue [number] to queue a song`)
+    }
+
+    if (message.toLowerCase().startsWith('!queue')) {
+        const songNumber = parseInt(message.split(' ')[1]);
+
+        if (!songNumber || songNumber < 1 || songNumber > streamPlaylist.length) {
+            client.say(channel, 'Invalid song number, use !nextsong to see available songs.');
+        }
+
+        if (pointsPool < 150) {
+            client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
+            return;
+        }
+
+        const song = streamPlaylist[songNumber - 1];
+        pointsPool -= 150;
+        songQueue.push(song)
+
+        const titleParts = song.snippet.title.split(' - ');
+        const title = (titleParts[1] || titleParts[0]).substring(0, 25)
+        client.say(channel, `${title} added to queue, pool remaining: ` + Math.floor(pointsPool))
     }
 
     /*
@@ -157,6 +219,22 @@ async function getPlaylist() {
     return response.data.items;
 }
 
+function getNextSong() {
+
+    if (songQueue.length > 0) {
+        return songQueue.shift();
+    }
+
+    if (playbackMode === "ordered") {
+        const song = streamPlaylist[currentIndex];
+        currentIndex = (currentIndex + 1) % streamPlaylist.length;
+        return song;
+    } else {
+        const randomIndex = Math.floor(Math.random() * streamPlaylist.length);
+        return streamPlaylist[randomIndex]
+    }
+}
+
 async function getTwitchToken() {
     const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
         params: {
@@ -183,6 +261,18 @@ async function getViewerCount(token) {
     return stream ? stream.viewer_count : 0
 };
 
+function playSong(song) {
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: 'song',
+                videoId: song.snippet.resourceId.videoId,
+                title: song.snippet.title
+            }))
+        }
+    })
+}
+
 async function viewerMultiplier() {
     const viewers = await getViewerCount(twitchToken);
     if (viewers === 0) return 1
@@ -197,6 +287,7 @@ async function tick() {
     const gained = Math.floor(pointsPool) - Math.floor(previousPool);
 
     const data = JSON.stringify({
+        type: 'points',
         points: Math.floor(pointsPool), 
         multiplier: Math.floor(multiplier),
         gained: gained
@@ -223,7 +314,9 @@ async function startServer() {
     await client.connect();
     console.log('Bot connected to chat')
     streamPlaylist = await getPlaylist();
-    console.log('Playlist loaded: ', streamPlaylist.length, 'songs')
     startInterval()
+
+    const firstSong = getNextSong();
+    if (firstSong) playSong(firstSong);
 };
 startServer()

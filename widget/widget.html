@@ -32,7 +32,7 @@
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
 
-            if (data.points !== undefined){
+            if (data.points !== undefined && data.type === 'points'){
                 document.getElementById('points').textContent = `Points: ${data.points}`;
                 document.getElementById('multiplier').textContent = `Multiplier: x${data.multiplier}`;
                 showFloatingPoints(data.gained);
