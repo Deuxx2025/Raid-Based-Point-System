@@ -37,6 +37,7 @@ let pointsPool = 0;
 let intervalID;
 let twitchToken;
 let availableSounds = [];
+let streamPlaylist = [];
 
 fs.readdir('sounds', (err, files) => {
     if (err) {
@@ -221,8 +222,8 @@ async function startServer() {
     console.log('Twitch token acquired');
     await client.connect();
     console.log('Bot connected to chat')
-    //const playlist = await getPlaylist();
-    //console.log('Playlist loaded: ', playlist.length, 'songs')
+    streamPlaylist = await getPlaylist();
+    console.log('Playlist loaded: ', streamPlaylist.length, 'songs')
     startInterval()
 };
 startServer()

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <title>Music Player</title>
+</head>
+<body>
+    <div id="player"></div>
+    <script>
+        const socket = new WebSocket('ws://localhost:8080');
+
+        let player;
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: 360,
+                width: 640,
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                } 
+            });
+        }
+
+        function onPlayerReady(event){
+            console.log("Player ready");
+        }
+
+        function onPlayerStateChange(event){
+            if (event.data === YT.PlayerState.ENDED) {
+                console.log('Song ended')
+            }
+        }
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.videoId) {
+                player.loadVideoById(data.videoId);
+            }
+        }
+    </script>
+</body>
+</html>
