@@ -1,3 +1,4 @@
+//#region requires & tokens
 const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
@@ -33,16 +34,18 @@ const redemptions = [
     { name : 'nextsong', cost : 150, description : 'Queue a song - use !nextsong to browse' },
     { name : 'endstream', cost : 100000, description : 'Kill the stream' }
 ];
+//#endregion
 
-let playbackMode = 'ordered';
-let currentIndex = 0;
+//#region Variables
 let pointsPool = 0;
 let intervalID;
 let twitchToken;
 let availableSounds = [];
 let streamPlaylist = [];
 let songQueue = [];
+//#endregion
 
+//#region Setting server
 fs.readdir('sounds', (err, files) => {
     if (err) {
         console.log(err);
@@ -64,18 +67,6 @@ app.listen(PORT, () => {
 wss.on('connection', (ws) => {
     console.log('Widget Connected');
     console.log('Playlist length on connection:', streamPlaylist.length);
-
-    if (streamPlaylist.length > 0) {
-        const firstSong = getNextSong();
-        if (firstSong) {
-            ws.send(JSON.stringify({
-                type: 'song',
-                videoId: firstSong.snippet.resourceId.videoId,
-                title: firstSong.snippet.title
-            }));
-        }
-    }
-    
 
     ws.on('message', (message) => {
         const data = JSON.parse(message);
@@ -100,7 +91,9 @@ app.get('/auth/callback', async (req, res) =>{
 oauth2Client.setCredentials({
     refresh_token: process.env.YOUTUBE_REFRESH_TOKEN
 });
+//#endregion
 
+//#region Bot command
 client.on('message', (channel, tag, message, self) => {
     if (self) return;
 
@@ -208,15 +201,32 @@ client.on('message', (channel, tag, message, self) => {
         });
     }
 });
+//#endregion
 
+//#region Getters
 async function getPlaylist() {
     const youtube = google.youtube({ version: 'v3', auth: oauth2Client});
-    const response = await youtube.playlistItems.list({
-        part: 'snippet',
-        playlistId: 'LL',
-        maxResults: 50
-    });
-    return response.data.items;
+    let allItems = [];
+    let nextPageToken = null;
+
+    while (allItems.length < 100) {
+        const response = await youtube.playlistItems.list({
+            part: 'snippet',
+            playlistId: 'LL',
+            maxResults: 50,
+            pageToken: nextPageToken || undefined
+        });
+
+        allItems = [...allItems, ...response.data.items];
+        nextPageToken = response.data.nextPageToken;
+
+        if (!nextPageToken) break;
+    }
+
+    allItems = allItems.slice(0, 100);
+    allItems = allItems.filter(item => item.snippet && item.snippet.resourceId);
+    console.log('Playlist loaded:', allItems.length, 'songs');
+    return allItems;
 }
 
 function getNextSong() {
@@ -225,14 +235,9 @@ function getNextSong() {
         return songQueue.shift();
     }
 
-    if (playbackMode === "ordered") {
-        const song = streamPlaylist[currentIndex];
-        currentIndex = (currentIndex + 1) % streamPlaylist.length;
-        return song;
-    } else {
-        const randomIndex = Math.floor(Math.random() * streamPlaylist.length);
-        return streamPlaylist[randomIndex]
-    }
+    const randomIndex = Math.floor(Math.random() * streamPlaylist.length);
+    return streamPlaylist[randomIndex]
+    
 }
 
 async function getTwitchToken() {
@@ -260,7 +265,9 @@ async function getViewerCount(token) {
     const stream = response.data.data[0]
     return stream ? stream.viewer_count : 0
 };
+//#endregion
 
+//#region Functions
 function playSong(song) {
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
@@ -300,7 +307,9 @@ async function tick() {
     });
     console.log(`Points: ${Math.floor(pointsPool)} | Multiplier: ${Math.floor(multiplier)}`);
 };
+//#endregion
 
+//#region Interval
 function startInterval () {
     if (intervalID){
     clearInterval(intervalID);
@@ -320,3 +329,4 @@ async function startServer() {
     if (firstSong) playSong(firstSong);
 };
 startServer()
+//#endregion
