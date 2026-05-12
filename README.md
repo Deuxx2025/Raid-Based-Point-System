@@ -166,7 +166,7 @@ It has some logic to make the point system to work and it sends that information
 Install the Live Server extension in Visual Studio Code. Once installed, right click the `widget.html` and select 'Open with Live Server'. This will open in your web browser at `localhost:5500` where you can see it running live. Also this 5500 port overrides some safety features that might not let you check your project completely.
 
 ## Bot commands
-If you use the command `!menu` you can see all actions, right now the `!soundbits` command is fully implemented, if you use it, the chat bot will tell you all the available sounds and the command `!play` to actually play the sound, then the other actions `!nextsong` and `!endstream` is coming next. 
+If you use the command `!menu` (inside of the Twitch chat, you can enter by going to `www.twitch.tv/yourchannel.chat`) you can see all actions, right now `!soundbits` and `nextsong` commands are fully implemented, if you use it, the chat bot will tell you all the available sounds and the command `!play` to actually play the sound, then for `!nextsong` you need to use the command `!queue` to add a song to play. `!endstream` is coming next. 
 
 This is an example of the command flow:
 
@@ -179,9 +179,23 @@ Available sounds: sound1 | sound2 | sound3... | use !play soundname to play
 *Plays sound1*
 !play 1sound
 Sound not found, please use !soundbits to see available sounds
+!nextsong 
+Songs (beginnig of the list - end of the list) 1.song 1 name | 2.song 2 name... | !nextsong 2 for the next page | use !queue [number] to queue a song
+!queue 1
+name of the song added to queue 
 ```
 
 There are also safeguards like when the user doesn't have the points or if there's a typo the bot will respond, please feel free to check the code.
+
+While working on the YouTube code I came accross a peculiarity of the API that there are some videos that are not embeddable, that means that you can't play them through this widget, you need to be careful with that, in my case I have 2 playlist, a `!nextsong` playlist and a `fallback` playlist, my `fallback` playlist is my liked videos playlist I curated that list only to hold my favorite songs and that when you're calling the API is `LL` on the `playlistId` but if you want to set a specific playlist just keep in mind that the playlist can't be `private` but `unlisted` or `public` then you go into your search bar when you selected your playlist and get the Id, it looks like this: 
+
+```
+https://www.youtube.com/watch?v=videoCode&list=yourPlaylistId
+OR
+https://www.youtube.com/watch?v=videoCode&list=youPlaylistId&index=2
+```
+
+In my code you have 2 playlist going on but one will always sound no matter what and the other one is triggered by the command, you can find these as `getPlaylist` and `getRedeemablePlaylist` but if you just want to have 50 songs to play just replace the `playlistId` as I mentioned earlier and keep the `getRedeemablePlaylist` function, the other is for 100 songs. Make sure that the redeemable songs can be played, please in the `tick` function multiply the `pointsPool` by 50 and on the `startInterval` replace the 60k microseconds to 1k microseconds (basically from 1 minute to 1 second) just to get the redeemable ammount and test it quickly. Other than that I have an error handler that skip the songs that can't be played. 
 
 One last important thing, in order to avoid the copyright infringement I decided to add /sounds to the .gitignore file because most likely the sounds that I'll use have a no redistribution clause so for you to use the feature please create a `sounds` folder at the root of the project and then add a sound that you want, make sure that the name convention don't have spaces, I personally use the following `metal-pipe.mp3` | `screaming-bird.mp3`.
 

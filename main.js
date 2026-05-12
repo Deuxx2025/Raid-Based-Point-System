@@ -37,12 +37,15 @@ const redemptions = [
 //#endregion
 
 //#region Variables
+const RECENT_BUFFER = 5;
 let pointsPool = 0;
 let intervalID;
 let twitchToken;
 let availableSounds = [];
 let streamPlaylist = [];
+let redeemablePlaylist = [];
 let songQueue = [];
+let recentlyPlayed = [];
 //#endregion
 
 //#region Setting server
@@ -130,7 +133,7 @@ client.on('message', (channel, tag, message, self) => {
         const page = parseInt(message.split(' ')[1]) || 1;
         const start = (page - 1) * 10;
         const end = start + 10;
-        const pageSongs = streamPlaylist.slice(start, end);
+        const pageSongs = redeemablePlaylist.slice(start, end);
 
         const songList = pageSongs 
             .map((song, index) => {
@@ -139,7 +142,7 @@ client.on('message', (channel, tag, message, self) => {
                 return `${start + index + 1}.${title}`;
             })
             .join(' | ');
-        client.say(channel, `Songs (${start + 1}-${Math.min(end, streamPlaylist.length)}): ${songList} | !nextsong ${page + 1} for more | use !queue [number] to queue a song`)
+        client.say(channel, `Songs (${start + 1}-${Math.min(end, redeemablePlaylist.length)}): ${songList} | !nextsong ${page + 1} for more | use !queue [number] to queue a song`)
     }
 
     if (message.toLowerCase().startsWith('!queue')) {
@@ -154,7 +157,7 @@ client.on('message', (channel, tag, message, self) => {
             return;
         }
 
-        const song = streamPlaylist[songNumber - 1];
+        const song = redeemablePlaylist[songNumber - 1];
         pointsPool -= 150;
         songQueue.push(song)
 
@@ -229,15 +232,36 @@ async function getPlaylist() {
     return allItems;
 }
 
+async function getRedeemablePlaylist() {
+    const youtube = google.youtube({ version: 'v3', auth: oauth2Client});
+    const response = await youtube.playlistItems.list({
+        part: 'snippet',
+        playlistId: 'PLgQm9vyJY2HKijIDLTGMq_9l4iLgKPeQj',
+        maxResults: 50
+    });
+
+    redeemablePlaylist = response.data.items;
+    return redeemablePlaylist;
+}
+
 function getNextSong() {
 
     if (songQueue.length > 0) {
         return songQueue.shift();
     }
 
-    const randomIndex = Math.floor(Math.random() * streamPlaylist.length);
-    return streamPlaylist[randomIndex]
+    let randomIndex;
+    do {
+        randomIndex = Math.floor(Math.random() * streamPlaylist.length);
+    } while (recentlyPlayed.includes(randomIndex));
     
+    recentlyPlayed.push(randomIndex);
+
+    if (recentlyPlayed.length > RECENT_BUFFER) {
+        recentlyPlayed.shift();
+    }
+
+    return streamPlaylist[randomIndex]
 }
 
 async function getTwitchToken() {
@@ -323,6 +347,7 @@ async function startServer() {
     await client.connect();
     console.log('Bot connected to chat')
     streamPlaylist = await getPlaylist();
+    redeemablePlaylist = await getRedeemablePlaylist();
     startInterval()
 
     const firstSong = getNextSong();
