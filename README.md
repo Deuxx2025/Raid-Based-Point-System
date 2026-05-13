@@ -24,6 +24,7 @@ It's been very helpful in my ignorance in this part of programming, and also all
 
 # How to set up the widget 
 The steps are:
+-Special remarks
 -Clone the repo
 -Get the Twitch keys
 -Get the YouTube keys
@@ -33,6 +34,9 @@ The steps are:
 -Open the widget with Live Server
 -Bot commands
 -Tweak values if you want
+
+## Special remarks
+I will have a special space for image management because I have drawings of my own that I want users to change but that code is only for people who want to display images, if you don't want this feature in the tool then just delete the files `haruki.html/css` and on the future disable the bot commands.
 
 ## Clone the repo 
 Clone the repository using your preferred method. On GitHub page there's a green button that says <>Code, click on it, then you can use the HTTP, SSH or GitHub Desktop option depending on your setup. 
@@ -166,7 +170,7 @@ It has some logic to make the point system to work and it sends that information
 Install the Live Server extension in Visual Studio Code. Once installed, right click the `widget.html` and select 'Open with Live Server'. This will open in your web browser at `localhost:5500` where you can see it running live. Also this 5500 port overrides some safety features that might not let you check your project completely.
 
 ## Bot commands
-If you use the command `!menu` (inside of the Twitch chat, you can enter by going to `www.twitch.tv/yourchannel.chat`) you can see all actions, right now `!soundbits` and `nextsong` commands are fully implemented, if you use it, the chat bot will tell you all the available sounds and the command `!play` to actually play the sound, then for `!nextsong` you need to use the command `!queue` to add a song to play. `!endstream` is coming next. 
+If you use the command `!menu` (inside of the Twitch chat, you can enter by going to `www.twitch.tv/yourchannel/chat`) you can see all actions, right now `!soundbits` and `nextsong` commands are fully implemented, if you use it, the chat bot will tell you all the available sounds and the command `!play` to actually play the sound, then for `!nextsong` you need to use the command `!queue` to add a song to play. `!endstream` is coming next. 
 
 This is an example of the command flow:
 
