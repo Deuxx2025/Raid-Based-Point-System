@@ -31,6 +31,7 @@ const client = new tmi.Client({
 });
 const redemptions = [
     { name : 'soundbits', cost : 10, description : 'Play a sound bit' },
+    { name : 'skins', cost : 50, description : 'Change the avatar skin' },
     { name : 'nextsong', cost : 150, description : 'Queue a song - use !nextsong to browse' },
     { name : 'endstream', cost : 100000, description : 'Kill the stream' }
 ];
@@ -38,10 +39,12 @@ const redemptions = [
 
 //#region Variables
 const RECENT_BUFFER = 5;
+let currentSkin = 'Zuko-Haruki'
 let pointsPool = 0;
 let intervalID;
 let twitchToken;
 let availableSounds = [];
+let availableSkins = [];
 let streamPlaylist = [];
 let redeemablePlaylist = [];
 let songQueue = [];
@@ -60,6 +63,20 @@ fs.readdir('sounds', (err, files) => {
             .filter(file => file.endsWith('.mp3'))
             .map(file => file.replace('.mp3', ''));
         console.log('Sounds loaded', availableSounds);
+    }
+});
+
+fs.readdir('assets/skins', (err, files) => {
+    if (err) {
+        console.log(err);
+        return;
+    }
+    else
+    {
+        availableSkins = files 
+            .filter(file => file.endsWith('.png'))
+            .map(file => file.replace('.png', ''));
+        console.log('Skins loaded', availableSkins);
     }
 });
 
@@ -129,6 +146,10 @@ client.on('message', (channel, tag, message, self) => {
         client.say(channel, `Available sounds: ${availableSounds.join(' | ')} | use !play soundname to play`)
     }
 
+    if (message.toLowerCase() === '!skins') {
+        client.say(channel, `Available skins: ${availableSkins.join(' | ')} | use !swap skinname to change`)
+    }
+
     if (message.toLowerCase().startsWith('!nextsong')) {
         const page = parseInt(message.split(' ')[1]) || 1;
         const start = (page - 1) * 10;
@@ -143,27 +164,6 @@ client.on('message', (channel, tag, message, self) => {
             })
             .join(' | ');
         client.say(channel, `Songs (${start + 1}-${Math.min(end, redeemablePlaylist.length)}): ${songList} | !nextsong ${page + 1} for more | use !queue [number] to queue a song`)
-    }
-
-    if (message.toLowerCase().startsWith('!queue')) {
-        const songNumber = parseInt(message.split(' ')[1]);
-
-        if (!songNumber || songNumber < 1 || songNumber > streamPlaylist.length) {
-            client.say(channel, 'Invalid song number, use !nextsong to see available songs.');
-        }
-
-        if (pointsPool < 150) {
-            client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
-            return;
-        }
-
-        const song = redeemablePlaylist[songNumber - 1];
-        pointsPool -= 150;
-        songQueue.push(song)
-
-        const titleParts = song.snippet.title.split(' - ');
-        const title = (titleParts[1] || titleParts[0]).substring(0, 25)
-        client.say(channel, `${title} added to queue, pool remaining: ` + Math.floor(pointsPool))
     }
 
     /*
@@ -202,6 +202,62 @@ client.on('message', (channel, tag, message, self) => {
                 client.send(JSON.stringify({sound: soundName}));
             }
         });
+    }
+
+    if (message.toLowerCase().startsWith('!swap')) {
+        const skinName = message.split(' ')[1];
+        const skinExists = fs.existsSync(`./assets/skins/${skinName}.png`);
+        const redemption = redemptions.find(r => r.name === 'skins')
+
+        if (!skinExists) {
+            client.say(channel, 'Skin not found, please type !skins to see available skins');
+            return;
+        }
+
+        if (skinName === currentSkin) {
+            client.say(channel, `${skinName} is already active`);
+            return;
+        }
+
+        if (pointsPool < redemption.cost) {
+            client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
+            return;
+        }
+
+        pointsPool -= redemption.cost;
+        currentSkin = skinName; 
+        client.say(channel, `Swapping  ${skinName}, current pool: ` + Math.floor(pointsPool));
+
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    type: 'skin',
+                    skin: skinName
+                }));
+            }
+        });
+    }
+
+    if (message.toLowerCase().startsWith('!queue')) {
+        const songNumber = parseInt(message.split(' ')[1]);
+        const redemption = redemptions.find(r => r.name === 'nextsong')
+
+        if (!songNumber || songNumber < 1 || songNumber > streamPlaylist.length) {
+            client.say(channel, 'Invalid song number, use !nextsong to see available songs.');
+        }
+
+        if (pointsPool < redemption.cost) {
+            client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
+            return;
+        }
+
+        const song = redeemablePlaylist[songNumber - 1];
+        pointsPool -= redemption.cost;
+        songQueue.push(song)
+
+        const titleParts = song.snippet.title.split(' - ');
+        const title = (titleParts[1] || titleParts[0]).substring(0, 25)
+        client.say(channel, `${title} added to queue, pool remaining: ` + Math.floor(pointsPool))
     }
 });
 //#endregion
@@ -314,7 +370,7 @@ async function tick() {
     const previousPool = pointsPool
     const multiplier = await viewerMultiplier();
     //change this at your will, it can be `pointsPool += yourVariable * multiplier`
-    pointsPool += multiplier;
+    pointsPool += multiplier * 10;
     const gained = Math.floor(pointsPool) - Math.floor(previousPool);
 
     const data = JSON.stringify({
@@ -338,7 +394,7 @@ function startInterval () {
     if (intervalID){
     clearInterval(intervalID);
     }
-    intervalID = setInterval(tick, 60000)
+    intervalID = setInterval(tick, 1000)
 }
 
 async function startServer() {

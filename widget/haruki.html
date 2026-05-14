@@ -8,5 +8,17 @@
 <body>
     <img id="haruki" src="../assets/skins/Zuko-Haruki.png" alt="🎮" onerror="this.style.display='none'"></img>
     <div id="speech-bubble" style="display:none"></div>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:8080');
+        
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'skin') {
+                document.getElementById('haruki').src=`../assets/skins/${data.skin}.png`
+            }
+        }
+    </script>
 </body>
 </html>
