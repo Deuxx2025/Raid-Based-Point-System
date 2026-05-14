@@ -199,7 +199,11 @@ client.on('message', (channel, tag, message, self) => {
 
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({sound: soundName}));
+                client.send(JSON.stringify({
+                    type: 'sound',
+                    sound: soundName,
+                    message: 'Sound incoming'
+                }));
             }
         });
     }
@@ -232,7 +236,8 @@ client.on('message', (channel, tag, message, self) => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
                     type: 'skin',
-                    skin: skinName
+                    skin: skinName,
+                    message: 'Looking fine'
                 }));
             }
         });
@@ -258,6 +263,15 @@ client.on('message', (channel, tag, message, self) => {
         const titleParts = song.snippet.title.split(' - ');
         const title = (titleParts[1] || titleParts[0]).substring(0, 25)
         client.say(channel, `${title} added to queue, pool remaining: ` + Math.floor(pointsPool))
+
+        wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: 'song',
+                message: `${title} queued!`
+            }))};
+        });
+   
     }
 });
 //#endregion

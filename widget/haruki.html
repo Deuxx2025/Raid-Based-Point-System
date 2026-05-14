@@ -3,21 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="haruki.css">
     <title>Character</title>
 </head>
 <body>
     <img id="haruki" src="../assets/skins/Zuko-Haruki.png" alt="🎮" onerror="this.style.display='none'"></img>
-    <div id="speech-bubble" style="display:none"></div>
+    <div id="speech-bubble">Type !menu to see what we have in store</div>
 
     <script>
         const socket = new WebSocket('ws://localhost:8080');
+        const FALLBACK_TEXT = 'Type !menu to see what we have in store'
         
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
 
             if (data.type === 'skin') {
                 document.getElementById('haruki').src=`../assets/skins/${data.skin}.png`
+            } 
+
+            if (data.message) {
+                showFlavor(data.message)
             }
+        }
+
+        function showFlavor(message) {
+            document.getElementById('speech-bubble').textContent = message;
+            setTimeout(() => {
+                document.getElementById('speech-bubble').textContent = FALLBACK_TEXT;
+            }, 5000)
         }
     </script>
 </body>

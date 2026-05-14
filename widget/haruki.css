@@ -16,7 +16,27 @@ body {
     display: inline-block;
 }
 
-#haruki {
-    width: 150px;
-    height: auto;
+#speech-bubble {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.75);
+    border: 3px solid black;
+    border-radius: 10px;
+    padding: 8px; 
+    font-size: 50px;
+    color: black;
+    max-width: 600px;
+    text-align: center;
+}
+
+#speech-bubble::after {
+    content: '';
+    position: absolute;
+    border-style: solid;
+    bottom: -65px;
+    left: -25px;
+    transform: translateY(-50%) rotate(220deg);
+    border-width: 50px 25px 5px 0;
+    border-color: transparent black transparent transparent;
 }
