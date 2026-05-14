@@ -370,7 +370,7 @@ async function tick() {
     const previousPool = pointsPool
     const multiplier = await viewerMultiplier();
     //change this at your will, it can be `pointsPool += yourVariable * multiplier`
-    pointsPool += multiplier * 10;
+    pointsPool += multiplier;
     const gained = Math.floor(pointsPool) - Math.floor(previousPool);
 
     const data = JSON.stringify({
@@ -394,7 +394,7 @@ function startInterval () {
     if (intervalID){
     clearInterval(intervalID);
     }
-    intervalID = setInterval(tick, 1000)
+    intervalID = setInterval(tick, 60000)
 }
 
 async function startServer() {
