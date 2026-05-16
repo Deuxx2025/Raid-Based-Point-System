@@ -143,5 +143,5 @@ vite.config.ts.timestamp-*
 .vite/
 
 # RBPS Special 
-sounds/
+sounds/sound-board/
 assets/skins/

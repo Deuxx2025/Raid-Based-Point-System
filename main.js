@@ -52,7 +52,7 @@ let recentlyPlayed = [];
 //#endregion
 
 //#region Setting server
-fs.readdir('sounds', (err, files) => {
+fs.readdir('sounds/sound-board', (err, files) => {
     if (err) {
         console.log(err);
         return;
@@ -181,7 +181,7 @@ client.on('message', (channel, tag, message, self) => {
 
     if (message.toLowerCase().startsWith('!play')) {
         const soundName = message.split(' ')[1];
-        const soundExists = fs.existsSync(`./sounds/${soundName}.mp3`);
+        const soundExists = fs.existsSync(`./sounds/sound-board/${soundName}.mp3`);
         const redemption = redemptions.find(r => r.name === 'soundbits')
 
         if (!soundExists) {
@@ -408,7 +408,7 @@ function startInterval () {
     if (intervalID){
     clearInterval(intervalID);
     }
-    intervalID = setInterval(tick, 60000)
+    intervalID = setInterval(tick, 60000) 
 }
 
 async function startServer() {
