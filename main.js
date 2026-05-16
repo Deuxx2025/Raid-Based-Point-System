@@ -38,7 +38,7 @@ const redemptions = [
 //#endregion
 
 //#region Variables
-const RECENT_BUFFER = 5;
+const RECENT_BUFFER = 10;
 let currentSkin = 'Zuko-Haruki'
 let pointsPool = 0;
 let intervalID;
@@ -282,7 +282,7 @@ async function getPlaylist() {
     let allItems = [];
     let nextPageToken = null;
 
-    while (allItems.length < 100) {
+    while (allItems.length < 200) {
         const response = await youtube.playlistItems.list({
             part: 'snippet',
             playlistId: 'LL',
@@ -296,7 +296,7 @@ async function getPlaylist() {
         if (!nextPageToken) break;
     }
 
-    allItems = allItems.slice(0, 100);
+    allItems = allItems.slice(0, 200);
     allItems = allItems.filter(item => item.snippet && item.snippet.resourceId);
     console.log('Playlist loaded:', allItems.length, 'songs');
     return allItems;

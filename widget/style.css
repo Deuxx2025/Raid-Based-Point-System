@@ -15,9 +15,8 @@ body {
 
 #widget-container {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
+    align-items: row;
+    align-items: flex-end;
 }
 
 #coin-sack {
@@ -25,11 +24,16 @@ body {
     cursor: pointer;
 }
 
+#coin-sack-img {
+    width: 64px;
+    image-rendering: pixelated;
+}
+
 #point-display {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    font-size: 8px;
+    font-size: 7px;
 }
 
 .floating-points {

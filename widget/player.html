@@ -36,12 +36,13 @@
 
         function onPlayerReady(event){
             event.target.unMute();
-            socket.send(JSON.stringify({ songEnded: true}));
             console.log("Player ready");
+            socket.send(JSON.stringify({ songEnded: true}));
         }
 
         function onPlayerStateChange(event){
             if (event.data === YT.PlayerState.ENDED) {
+                console.log("The video ended")
                 socket.send(JSON.stringify({ songEnded: true}));
             }
         }
