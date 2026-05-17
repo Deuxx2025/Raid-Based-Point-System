@@ -203,7 +203,8 @@ client.on('message', (channel, tag, message, self) => {
                     type: 'sound',
                     sound: soundName,
                     message: 'Sound incoming',
-                    spendSound: 'sfx/spend-sound'
+                    spendSound: 'sfx/spend-sound',
+                    spent: redemption.cost
                 }));
             }
         });
@@ -239,7 +240,8 @@ client.on('message', (channel, tag, message, self) => {
                     type: 'skin',
                     skin: skinName,
                     message: 'Looking fine',
-                    spendSound: 'sfx/spend-sound'
+                    spendSound: 'sfx/spend-sound',
+                    spent: redemption.cost
                 }));
             }
         });
@@ -271,7 +273,8 @@ client.on('message', (channel, tag, message, self) => {
             client.send(JSON.stringify({
                 type: 'song',
                 message: `${title} queued!`,
-                spendSound: 'sfx/spend-sound'
+                spendSound: 'sfx/spend-sound',
+                spent: redemption.cost
             }))};
         });
    
@@ -394,7 +397,7 @@ async function tick() {
     const previousPool = pointsPool
     const multiplier = await viewerMultiplier();
     //change this at your will, it can be `pointsPool += yourVariable * multiplier`
-    pointsPool += multiplier;
+    pointsPool += multiplier * 10;
     const gained = Math.floor(pointsPool) - Math.floor(previousPool);
     const sound = getMilestoneSound(previousPool, pointsPool);
 
@@ -420,7 +423,7 @@ function startInterval () {
     if (intervalID){
     clearInterval(intervalID);
     }
-    intervalID = setInterval(tick, 60000) 
+    intervalID = setInterval(tick, 1000) 
 }
 
 async function startServer() {

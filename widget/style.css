@@ -45,6 +45,16 @@ body {
     pointer-events: none;
 }
 
+.spending-points {
+    position: absolute;
+    left: 30px;
+    color: red;
+    font-size: 10px;
+    text-shadow: 2px 2px 0px black;
+    animation: floatDown 1.5s ease-out forwards;
+    pointer-events: none;
+}
+
 @keyframes floatUp {
     0% {
         opacity: 1;
@@ -54,5 +64,17 @@ body {
     100% {
         opacity: 0;
         transform: translateY(-50px);
+    }
+}
+
+@keyframes floatDown {
+    0% {
+        opacity: 1;
+        transform: translateY(-50px);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(0)
     }
 }

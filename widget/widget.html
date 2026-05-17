@@ -29,6 +29,17 @@
             })
         }
 
+        function showSpendingPoints(amount){
+            const spending = document.createElement('div');
+            spending.classList.add('spending-points')
+            spending.textContent = `-${amount}`
+            document.getElementById('coin-sack').appendChild(spending);
+
+            spending.addEventListener('animationend', () => {
+                spending.remove();
+            })
+        }
+
         const socket = new WebSocket('ws://localhost:8080');
                                     
         socket.onmessage = (event) => {
@@ -38,6 +49,10 @@
                 document.getElementById('points').textContent = `Points: ${data.points}`;
                 document.getElementById('multiplier').textContent = `Multiplier: x${data.multiplier}`;
                 showFloatingPoints(data.gained);
+            }
+
+            if (data.spent) {
+                showSpendingPoints(data.spent)
             }
             
             if (data.sound) {
