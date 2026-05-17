@@ -45,9 +45,14 @@
                 audio.play();
             }
 
-            if(data.milestone) {
+            if (data.milestone) {
                 const milestone = new Audio(`../sounds/${data.milestone}`);
                 milestone.play();
+            }
+
+            if (data.spendSound) {
+                const spend = new Audio(`../sounds/${data.spendSound}.mp3`);
+                spend.play();
             }
         }
     </script>

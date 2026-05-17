@@ -202,7 +202,8 @@ client.on('message', (channel, tag, message, self) => {
                 client.send(JSON.stringify({
                     type: 'sound',
                     sound: soundName,
-                    message: 'Sound incoming'
+                    message: 'Sound incoming',
+                    spendSound: 'sfx/spend-sound'
                 }));
             }
         });
@@ -237,7 +238,8 @@ client.on('message', (channel, tag, message, self) => {
                 client.send(JSON.stringify({
                     type: 'skin',
                     skin: skinName,
-                    message: 'Looking fine'
+                    message: 'Looking fine',
+                    spendSound: 'sfx/spend-sound'
                 }));
             }
         });
@@ -268,7 +270,8 @@ client.on('message', (channel, tag, message, self) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({
                 type: 'song',
-                message: `${title} queued!`
+                message: `${title} queued!`,
+                spendSound: 'sfx/spend-sound'
             }))};
         });
    
