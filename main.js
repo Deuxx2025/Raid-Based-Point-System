@@ -359,6 +359,13 @@ async function getViewerCount(token) {
     const stream = response.data.data[0]
     return stream ? stream.viewer_count : 0
 };
+
+function getMilestoneSound(previous, current) {
+    if (Math.floor(current / 50) > Math.floor(previous / 50)) return 'sfx/large-coin-sound.wav';
+    if (Math.floor(current / 10) > Math.floor(previous / 10)) return 'sfx/medium-coin-sound.ogg';
+    if(current < 10) return 'sfx/small-coin-sound.wav';
+    return null;
+}
 //#endregion
 
 //#region Functions
@@ -386,12 +393,14 @@ async function tick() {
     //change this at your will, it can be `pointsPool += yourVariable * multiplier`
     pointsPool += multiplier;
     const gained = Math.floor(pointsPool) - Math.floor(previousPool);
+    const sound = getMilestoneSound(previousPool, pointsPool);
 
     const data = JSON.stringify({
         type: 'points',
         points: Math.floor(pointsPool), 
         multiplier: Math.floor(multiplier),
-        gained: gained
+        gained: gained, 
+        milestone: sound
     });
 
     wss.clients.forEach((client) => {

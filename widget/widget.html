@@ -44,6 +44,11 @@
                 const audio = new Audio(`../sounds/sound-board/${data.sound}.mp3`);
                 audio.play();
             }
+
+            if(data.milestone) {
+                const milestone = new Audio(`../sounds/${data.milestone}`);
+                milestone.play();
+            }
         }
     </script>
 </body>
