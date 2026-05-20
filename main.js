@@ -183,18 +183,22 @@ client.on('message', (channel, tag, message, self) => {
         const soundName = message.split(' ')[1];
         const soundExists = fs.existsSync(`./sounds/sound-board/${soundName}.mp3`);
         const redemption = redemptions.find(r => r.name === 'soundbits')
+        const streamer = isStreamer(tag)
 
         if (!soundExists) {
             client.say(channel, 'Sound not found, please type !soundbits to see available sounds');
             return
         }
 
-        if (pointsPool < redemption.cost) {
+        if (!streamer && pointsPool < redemption.cost) {
             client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
             return;
         }
 
-        pointsPool -= redemption.cost;
+        if (!streamer){
+            pointsPool -= redemption.cost;
+        }
+        
         client.say(channel, `Playing ${soundName}, current pool: ` + Math.floor(pointsPool));
 
         wss.clients.forEach((client) => {
@@ -214,6 +218,7 @@ client.on('message', (channel, tag, message, self) => {
         const skinName = message.split(' ')[1];
         const skinExists = fs.existsSync(`./assets/skins/${skinName}.png`);
         const redemption = redemptions.find(r => r.name === 'skins')
+        const streamer = isStreamer(tag)
 
         if (!skinExists) {
             client.say(channel, 'Skin not found, please type !skins to see available skins');
@@ -225,12 +230,15 @@ client.on('message', (channel, tag, message, self) => {
             return;
         }
 
-        if (pointsPool < redemption.cost) {
+        if (!streamer && pointsPool < redemption.cost) {
             client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
             return;
         }
 
-        pointsPool -= redemption.cost;
+        if (!streamer){
+            pointsPool -= redemption.cost;
+        }
+        
         currentSkin = skinName; 
         client.say(channel, `Swapping  ${skinName}, current pool: ` + Math.floor(pointsPool));
 
@@ -250,18 +258,23 @@ client.on('message', (channel, tag, message, self) => {
     if (message.toLowerCase().startsWith('!queue')) {
         const songNumber = parseInt(message.split(' ')[1]);
         const redemption = redemptions.find(r => r.name === 'nextsong')
+        const streamer = isStreamer(tag)
 
         if (!songNumber || songNumber < 1 || songNumber > streamPlaylist.length) {
             client.say(channel, 'Invalid song number, use !nextsong to see available songs.');
         }
 
-        if (pointsPool < redemption.cost) {
+        if (!streamer && pointsPool < redemption.cost) {
             client.say(channel, 'Not enough points, current pool: ' + Math.floor(pointsPool));
             return;
         }
 
         const song = redeemablePlaylist[songNumber - 1];
-        pointsPool -= redemption.cost;
+
+        if (!streamer) {
+            pointsPool -= redemption.cost;
+        }
+    
         songQueue.push(song)
 
         const titleParts = song.snippet.title.split(' - ');
@@ -385,6 +398,10 @@ function playSong(song) {
             }))
         }
     })
+}
+
+function isStreamer(tag) {
+    return tag.username === process.env.TWITCH_USERNAME.toLowerCase()
 }
 
 async function viewerMultiplier() {
