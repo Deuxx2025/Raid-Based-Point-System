@@ -39,8 +39,10 @@ const redemptions = [
 
 //#region Variables
 const RECENT_BUFFER = 15;
+const MENU_COOLDOWN = 15000;
 let currentSkin = 'Zuko-Haruki'
 let pointsPool = 0;
+let lastMenuCall = 0;
 let intervalID;
 let twitchToken;
 let availableSounds = [];
@@ -118,10 +120,19 @@ client.on('message', (channel, tag, message, self) => {
     if (self) return;
 
     if (message.toLowerCase() === '!menu') {
+        const now = Date.now()
         const menuMessage = redemptions
             .map(r => `!${r.name} (${r.cost}) - ${r.description}`)
             .join(' | ');
-        client.say(channel, `RBPS Menu: ${menuMessage}`)
+        
+        if (now - lastMenuCall < MENU_COOLDOWN) {
+            client.say(channel, '!Menu is on cooldown');
+            return;
+        }
+
+        lastMenuCall = now
+
+        client.say(channel, `RBPS Menu: ${menuMessage}`);
     }
 
     /*
