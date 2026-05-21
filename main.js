@@ -38,7 +38,7 @@ const redemptions = [
 //#endregion
 
 //#region Variables
-const RECENT_BUFFER = 10;
+const RECENT_BUFFER = 15;
 let currentSkin = 'Zuko-Haruki'
 let pointsPool = 0;
 let intervalID;
@@ -199,7 +199,9 @@ client.on('message', (channel, tag, message, self) => {
             pointsPool -= redemption.cost;
         }
         
-        client.say(channel, `Playing ${soundName}, current pool: ` + Math.floor(pointsPool));
+        client.say(channel, streamer
+            ? `All to the kings contempt; Jester performed ${soundName}`
+            : `Playing ${soundName}, current pool: ` + Math.floor(pointsPool));
 
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -207,8 +209,10 @@ client.on('message', (channel, tag, message, self) => {
                     type: 'sound',
                     sound: soundName,
                     message: 'Sound incoming',
-                    spendSound: 'sfx/spend-sound',
-                    spent: redemption.cost
+                    ...((!streamer) && {
+                        spendSound: 'sfx/spend-sound',
+                        spent: redemption.cost
+                    })
                 }));
             }
         });
@@ -240,7 +244,9 @@ client.on('message', (channel, tag, message, self) => {
         }
         
         currentSkin = skinName; 
-        client.say(channel, `Swapping  ${skinName}, current pool: ` + Math.floor(pointsPool));
+        client.say(channel, streamer
+            ? `All to the kings contempt; clothes changed`
+            : `Swapping  ${skinName}, current pool: ` + Math.floor(pointsPool));
 
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -248,8 +254,10 @@ client.on('message', (channel, tag, message, self) => {
                     type: 'skin',
                     skin: skinName,
                     message: 'Looking fine',
-                    spendSound: 'sfx/spend-sound',
-                    spent: redemption.cost
+                    ...((!streamer) && {
+                        spendSound: 'sfx/spend-sound',
+                        spent: redemption.cost
+                    })
                 }));
             }
         });
@@ -260,8 +268,9 @@ client.on('message', (channel, tag, message, self) => {
         const redemption = redemptions.find(r => r.name === 'nextsong')
         const streamer = isStreamer(tag)
 
-        if (!songNumber || songNumber < 1 || songNumber > streamPlaylist.length) {
+        if (!songNumber || songNumber < 1 || songNumber > redeemablePlaylist.length) {
             client.say(channel, 'Invalid song number, use !nextsong to see available songs.');
+            return;
         }
 
         if (!streamer && pointsPool < redemption.cost) {
@@ -275,19 +284,24 @@ client.on('message', (channel, tag, message, self) => {
             pointsPool -= redemption.cost;
         }
     
-        songQueue.push(song)
+        songQueue.push(song);
 
         const titleParts = song.snippet.title.split(' - ');
         const title = (titleParts[1] || titleParts[0]).substring(0, 25)
-        client.say(channel, `${title} added to queue, pool remaining: ` + Math.floor(pointsPool))
+        client.say(channel, streamer
+            ? `All to the kings contempt; the bard is going to play ${title}`
+            : `${title} added to queue, pool remaining: ` + Math.floor(pointsPool)
+        );
 
         wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({
                 type: 'song',
                 message: `${title} queued!`,
-                spendSound: 'sfx/spend-sound',
-                spent: redemption.cost
+                ...((!streamer) && {
+                    spendSound: 'sfx/spend-sound',
+                    spent: redemption.cost
+                })
             }))};
         });
    
@@ -346,7 +360,7 @@ function getNextSong() {
     
     recentlyPlayed.push(randomIndex);
 
-    if (recentlyPlayed.length > RECENT_BUFFER) {
+    if (recentlyPlayed.length > RECENT_BUFFER) { 
         recentlyPlayed.shift();
     }
 
