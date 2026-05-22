@@ -328,40 +328,57 @@ client.on('message', (channel, tag, message, self) => {
 
 //#region Getters
 async function getPlaylist() {
-    const youtube = google.youtube({ version: 'v3', auth: oauth2Client});
-    let allItems = [];
-    let nextPageToken = null;
+    try {
+        const youtube = google.youtube({ version: 'v3', auth: oauth2Client});
+        let allItems = [];
+        let nextPageToken = null;
 
-    while (allItems.length < 200) {
-        const response = await youtube.playlistItems.list({
-            part: 'snippet',
-            playlistId: 'LL',
-            maxResults: 50,
-            pageToken: nextPageToken || undefined
-        });
+        while (allItems.length < 200) {
+            const response = await youtube.playlistItems.list({
+                part: 'snippet',
+                playlistId: 'LL',
+                maxResults: 50,
+                pageToken: nextPageToken || undefined
+            });
 
-        allItems = [...allItems, ...response.data.items];
-        nextPageToken = response.data.nextPageToken;
+            allItems = [...allItems, ...response.data.items];
+            nextPageToken = response.data.nextPageToken;
 
-        if (!nextPageToken) break;
+            if (!nextPageToken) break;
+        }
+
+        allItems = allItems.slice(0, 200);
+        allItems = allItems.filter(item => item.snippet && item.snippet.resourceId);
+        console.log('Playlist loaded:', allItems.length, 'songs');
+        return allItems;
+    } catch (err) {
+        if (err) {
+            if (err.message.includes('invalid_grant')) {
+                console.log('YouTube token expired. Go through auth flow again and update YOUTUBE_REFRESH_TOKEN in your .env');
+            } else {
+                console.log('YouTube playlist error:', err.message);
+            }
+            return [];
+        }
     }
-
-    allItems = allItems.slice(0, 200);
-    allItems = allItems.filter(item => item.snippet && item.snippet.resourceId);
-    console.log('Playlist loaded:', allItems.length, 'songs');
-    return allItems;
 }
 
 async function getRedeemablePlaylist() {
-    const youtube = google.youtube({ version: 'v3', auth: oauth2Client});
-    const response = await youtube.playlistItems.list({
-        part: 'snippet',
-        playlistId: 'PLgQm9vyJY2HKijIDLTGMq_9l4iLgKPeQj',
-        maxResults: 50
-    });
+    try {
+        const youtube = google.youtube({ version: 'v3', auth: oauth2Client});
+        const response = await youtube.playlistItems.list({
+            part: 'snippet',
+            playlistId: 'PLgQm9vyJY2HKijIDLTGMq_9l4iLgKPeQj',
+            maxResults: 50
+        });
 
-    redeemablePlaylist = response.data.items;
-    return redeemablePlaylist;
+        redeemablePlaylist = response.data.items;
+        return redeemablePlaylist;
+    } catch (err) {
+        console.log('Redeemable playlist error:', err.message);
+        return [];
+    }
+    
 }
 
 function getNextSong() {
@@ -480,6 +497,9 @@ async function startServer() {
     await client.connect();
     console.log('Bot connected to chat')
     streamPlaylist = await getPlaylist();
+    if (streamPlaylist. length === 0) {
+        console.log('YouTube music unavailable - music feature disabled')
+    }
     redeemablePlaylist = await getRedeemablePlaylist();
     startInterval()
 
