@@ -12,6 +12,7 @@
         const socket = new WebSocket('ws://localhost:8080');
 
         let player;
+        let currentVideoId = null;
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
@@ -31,7 +32,10 @@
 
         function onPlayerError(event) {
             console.log("Video error, skipping to next song");   
-            socket.send(JSON.stringify({ songEnded: true}));
+            socket.send(JSON.stringify({ 
+                songEnded: true,
+                failedVideoId: currentVideoId
+            }));
         }
 
         function onPlayerReady(event){
@@ -51,6 +55,7 @@
             const data = JSON.parse(event.data);
             console.log('received', data)
             if (data.type === 'song' && data.videoId) {
+                currentVideoId = data.videoId;
                 if (player) {
                     player.loadVideoById(data.videoId);
                 }

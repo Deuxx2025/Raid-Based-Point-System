@@ -93,6 +93,12 @@ wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         const data = JSON.parse(message);
         if (data.songEnded) {
+            if (data.failedVideoId) {
+                streamPlaylist = streamPlaylist.filter(
+                    item => item.snippet.resourceId.videoId !== data.failedVideoId
+                );
+                console.log(`Removed failed video. Playlist now: ${streamPlaylist.length} songs`);
+            }
             const nextSong = getNextSong();
             if (nextSong) playSong(nextSong); 
         }
