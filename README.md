@@ -90,7 +90,7 @@ https://console.cloud.google.com
 
 The next step is to create a `new project`, on the top left corner next to the Google Cloud logo there is an option called `select a project`. A small window will emerge and on its top right corner the `new project` option will appear. Then just fill the project name, I called it by the acronym RBPS, create it and don't worry if you don't know what to put in the `Parent resource` leave it as it is. 
 
-On the top part you'll find a search bar, use it to search the YouTube DATA API v3, then hit enable, it will enable the API for your project and now you'll have 2 thing on your `Notifications`, the `creation of the project` and the `enable youtube service`, on the left side select `Credentials` and then `Create credentials`, select the OAuth client ID, to create a google OAuth you'll need to set up a management of screens, since you're not working for google the only option is to make it public, name the project, put email to contact and then hit create, it will let you in the page to create the OAuth. On the metrics part the is a lone option called create OAuth client. 
+On the top part you'll find a search bar, use it to search the YouTube DATA API v3, then hit enable, it will enable the API for your project and now you'll have 2 thing on your `Notifications`, the `creation of the project` and the `enable youtube service`, on the left side select `Credentials` and then `Create credentials`, select the OAuth client ID, to create a google OAuth you'll need to set up a management of screens, since you're not working for google the only option is to make it public, name the project, put email to contact and then hit create, it will let you in the page to create the OAuth. On the metrics part there is a lone option called create OAuth client. 
 
 Inside that page select the `web application` type, fill out the name of the application, then you'll see 2 sections, the `Authorize JavaScript origins` and the `Authorize redirects URL`, you'll need to fill some URLs in this section.
 
@@ -115,7 +115,7 @@ Now for the last part I put a little part on the code that safeguards the projec
 ## Set the .env file
 Here's where the client ID, client secret and bot OAuth key is used, this is a very delicate file that anyone who has access to it can hijack your account, that's why the .gitignore that I set up in the repo doesn't track it. But at the same time it's important to have it so that you can prove to the API that your application is legit. 
 
-You'll need the following global variables and paste the values after the = sign, open up the Google Cloud JSON, fill the information, the bot variable has a slight difference, you need to add the `oauth:` before the actual key as it follows: 
+You'll need the following global variables and paste the values after the = sign, open up the Google Cloud JSON, fill the information. The bot variable has a slight difference, you need to add the `oauth:` before the actual key as it follows: 
 
 ```
 TWITCH_CLIENT_ID=
@@ -169,8 +169,10 @@ It has some logic to make the point system to work and it sends that information
 ## Open the widget with Live Server
 Install the Live Server extension in Visual Studio Code. Once installed, right click the `widget.html` and select 'Open with Live Server'. This will open in your web browser at `localhost:5500` where you can see it running live. Also this 5500 port overrides some safety features that might not let you check your project completely.
 
+Also from experience you don't need to keep this browser pages open at all time but you need to "initialize it" so when you run the server open all the HTML pages with Live Server then close them. Now you can open the streaming app, and it will display normally if you have your streaming app open while initializing the server then you need to reconnect all the HTML files or you can close and then open the app again.
+
 ## Bot commands
-If you use the command `!menu` (inside of the Twitch chat, you can enter by going to `www.twitch.tv/yourchannel/chat`) you can see all actions, right now `!soundbits` and `nextsong` commands are fully implemented, if you use it, the chat bot will tell you all the available sounds and the command `!play` to actually play the sound, then for `!nextsong` you need to use the command `!queue` to add a song to play. `!endstream` is coming next. 
+If you use the command `!menu` (inside of the Twitch chat, you can enter by going to `www.twitch.tv/yourchannel/chat`) you can see all actions, right now `!soundbits`, `nextsong` and `skins` commands are fully implemented, if you use it, the chat bot will tell you all the available sounds and the command `!play` to actually play the sound, then for `!nextsong` you need to use the command `!queue` to add a song to play from a special playlist and for `!skins` you need to use the `!swap` tag to change the little character skins. `!endstream` is the myth of this project, there is 0 code for this since it requires 100k points and with the current point generation it is impossible but if you read this and somehow you manage to get 100k points not changing a single line with this code then I'm required by law to give you any Steam game you want. 
 
 This is an example of the command flow:
 
@@ -178,20 +180,24 @@ This is an example of the command flow:
 !menu 
 !soundbits (10 points) play a sound | !nextsong (150 points) choose next song...
 !soundbits 
-Available sounds: sound1 | sound2 | sound3... | use !play soundname to play
-!play sound1
-*Plays sound1*
+Available sounds: sound-1 | sound-2 | sound-3... | use !play soundname to play
+!play sound-1
+*Plays sound-1*
 !play 1sound
 Sound not found, please use !soundbits to see available sounds
 !nextsong 
-Songs (beginnig of the list - end of the list) 1.song 1 name | 2.song 2 name... | !nextsong 2 for the next page | use !queue [number] to queue a song
+Songs (beginning of the list - end of the list) 1.song 1 name | 2.song 2 name... | !nextsong 2 for the next page | use !queue [number] to queue a song
 !queue 1
 name of the song added to queue 
+!skins
+Available skins: skin-1 | skin-2 | skin-3 | use !swap skinname to change
+!swap skin-1
+Swapping skinname
 ```
 
 There are also safeguards like when the user doesn't have the points or if there's a typo the bot will respond, please feel free to check the code.
 
-While working on the YouTube code I came accross a peculiarity of the API that there are some videos that are not embeddable, that means that you can't play them through this widget, you need to be careful with that, in my case I have 2 playlist, a `!nextsong` playlist and a `fallback` playlist, my `fallback` playlist is my liked videos playlist I curated that list only to hold my favorite songs and that when you're calling the API is `LL` on the `playlistId` but if you want to set a specific playlist just keep in mind that the playlist can't be `private` but `unlisted` or `public` then you go into your search bar when you selected your playlist and get the Id, it looks like this: 
+While working on the YouTube code I came across a peculiarity of the API that there are some videos that are not embeddable, that means that you can't play them through this widget, you need to be careful with that, in my case I have 2 playlist, a `!nextsong` playlist and a `fallback` playlist, my `fallback` playlist is my liked videos playlist I curated that list only to hold my favorite songs and that when you're calling the API is `LL` on the `playlistId` but if you want to set a specific playlist just keep in mind that the playlist can't be `private` but `unlisted` or `public` then you go into your search bar when you selected your playlist and get the Id, it looks like this: 
 
 ```
 https://www.youtube.com/watch?v=videoCode&list=yourPlaylistId
@@ -199,9 +205,22 @@ OR
 https://www.youtube.com/watch?v=videoCode&list=youPlaylistId&index=2
 ```
 
-In my code you have 2 playlist going on but one will always sound no matter what and the other one is triggered by the command, you can find these as `getPlaylist` and `getRedeemablePlaylist` but if you just want to have 50 songs to play just replace the `playlistId` as I mentioned earlier and keep the `getRedeemablePlaylist` function, the other is for 100 songs. Make sure that the redeemable songs can be played, please in the `tick` function multiply the `pointsPool` by 50 and on the `startInterval` replace the 60k microseconds to 1k microseconds (basically from 1 minute to 1 second) just to get the redeemable ammount and test it quickly. Other than that I have an error handler that skip the songs that can't be played. 
+In my code you have 2 playlist going on but one will always sound no matter what and the other one is triggered by the command, you can find these as `getPlaylist` and `getRedeemablePlaylist` but if you just want to have 50 songs to play just replace the `playlistId` as I mentioned earlier and keep the `getRedeemablePlaylist` function, the other is for 100 songs. Make sure that the redeemable songs can be played, use the commands as you please since I created a tag that lets the streamer use all the redeemables without spending any points. Other than that I have an error handler that skip the songs that can't be played. 
 
-One last important thing, in order to avoid the copyright infringement I decided to add /sounds to the .gitignore file because most likely the sounds that I'll use have a no redistribution clause so for you to use the feature please create a `sounds` folder at the root of the project and then add a sound that you want, make sure that the name convention don't have spaces, I personally use the following `metal-pipe.mp3` | `screaming-bird.mp3`.
+One last important thing, in order to avoid the copyright infringement I decided to add /sounds/sound-board to the .gitignore file because most likely the sounds that I'll use have a no redistribution clause so for you to use the feature please create a `sound-board` folder at the `sounds` folder and then add a sound that you want, make sure that the name convention don't have spaces, I personally use the following `metal-pipe.mp3` | `screaming-bird.mp3`.
+
+## Auth flow for the YouTube refresh token
+Most likely your `YOUTUBE_REFRESH_TOKEN` is empty and I already addressed that but this time is to explain what you have to do when you already did this step. 
+
+I updated the code to have a `try/catch` method, basically if everything is correct it will `try` to run the code; if it's not the it will `catch` the error, since you have the previous YouTube Refresh token in the variable it won't let you get the new token so with this error handler it will print a message in the console saying that the `refresh token` expired so that you can do this:
+
+First you need to remove the value from YOUTUBE_REFRESH_TOKEN= in your .env but keep the variable and then run the code, once that is done it will trigger the following code:
+
+```
+console.log('Authorize your YouTube account by visiting:', authUrl);
+```
+
+Then when you visit the link it will tell you that the token is in the console, copy that and paste it in the .env file to then run the server again and see if it works.
 
 ## Tweak values if you want
 We've reached the end part of this little guide, it's been wild working on this project, but essentially this project is as much mine (as author) that is yours as well, please feel free to tweak values here and there because your needs are not the same as my needs. 
@@ -211,3 +230,10 @@ There are 2 functions that manages the point system, the `viewerMultiplier` and 
 The `tick` is where the points are calculated and this is the main point if you want to tweak some values, for example you can change the rate in which the formula is added, you can make it larger for the audience to gain more points faster. I also added a comment over it. 
 
 I'm very excited for this project and stay tuned for the next update.
+
+### Version 1.0
+Thank you so much for following this little journey of making this code, it was interesting all the things I had to do to make this work, right now you can have your own primitive soundboard that the viewers can use, they can choose what song can be played next and also what skin its showing on the screen, there are error handlers for unforeseen events such as expired tokens or crazy chats using the bot, this project can always be upgradable but right now I'ma make a game out of this. 
+
+That's right, since I made the base of an `Idle` type game then I'm going to develop one, but that's a story for another repo.
+
+Thanks for everything and I'll see you in the next update.
