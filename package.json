@@ -4,7 +4,9 @@
   "description": "This is a project that I was thinking on making when I gave up on the Twitch partnership so 2 questions came up:",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon main.js",
+    "electron": "electron ."
   },
   "repository": {
     "type": "git",
@@ -26,6 +28,7 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
+    "electron": "^42.2.0",
     "nodemon": "^3.1.14"
   }
 }
