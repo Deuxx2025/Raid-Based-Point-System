@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBPS Control Panel</title>
+</head>
+<body>
+    <h1>RBPS Control Panel</h1>
+
+    <h2>Twitch Settings</h2>
+    <input type="text" id="twitch-client-id" placeholder="Twitch Client ID">
+    <input type="text" id="twitch-client-secret" placeholder="Twitch Client Secret">
+    <input type="text" id="twitch-username" placeholder="Twitch Username">
+    <input type="text" id="twitch-bot-username" placeholder="Bot Username">
+    <input type="text" id="twitch-bot-token" placeholder="Bot Token (oauth:...)">
+
+    <h2>YouTube Settings</h2>
+    <input type="text" id="youtube-client-id" placeholder="YouTube Client ID">
+    <input type="text" id="youtube-client-id" placeholder="YouTube Client Secret">
+    <input type="text" id="youtube-refresh-token" placeholder="YouTube Refresh Token">
+
+    <button onclick="saveSettings()">Save & Start</button>
+
+    <script src="control-panel.js"></script>
+</body>
+</html>
