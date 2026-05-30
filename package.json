@@ -2,11 +2,11 @@
   "name": "twitch-project",
   "version": "1.0.0",
   "description": "This is a project that I was thinking on making when I gave up on the Twitch partnership so 2 questions came up:",
-  "main": "index.js",
+  "main": "electron.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon main.js",
-    "electron": "electron ."
+    "electron": ".\\node_modules\\.bin\\electron ."
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { spam } = require('child_process');
+const { spawn } = require('child_process');
 
 let serverProcess = null;
 
