@@ -106,14 +106,33 @@ wss.on('connection', (ws) => {
 });
 
 if (!process.env.YOUTUBE_REFRESH_TOKEN) {
-    console.log('Authorize your YouTube account by visiting:', authUrl);
+    console.log('No YouTube token found, visit:', authUrl);
+
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: 'auth-required',
+                authUrl: authUrl
+            }));
+        }
+    });
 }
 
 app.get('/auth/callback', async (req, res) =>{
     const { code } = req.query;
     const { tokens } = await oauth2Client.getToken(code);
-    console.log('Refresh token', tokens.refresh_token);
-    res.send('Authorization successful! Check your terminal for the refresh token')
+
+    const envContent = fs.readFileSync('.env', 'utf8');
+    const updateEnv = envContent.replace(
+        /YOUTUBE_REFRESH_TOKEN=.*/,
+        `YOUTUBE_REFRESH_TOKEN=${tokens.refresh_token}`
+    );
+    fs.writeFileSync('.env', updateEnv);
+
+    oauth2Client.setCredentials({ refresh_token: tokens.refresh_token });
+    //console.log('Refresh token', tokens.refresh_token);
+    //res.send('Authorization successful! Check your terminal for the refresh token')
+    res.send('Authorization successful! You can close this tab and return to RBPS.');
 });
 
 oauth2Client.setCredentials({
@@ -352,14 +371,20 @@ async function getPlaylist() {
         console.log('Playlist loaded:', allItems.length, 'songs');
         return allItems;
     } catch (err) {
-        if (err) {
-            if (err.message.includes('invalid_grant')) {
-                console.log('YouTube token expired. Go through auth flow again and update YOUTUBE_REFRESH_TOKEN in your .env');
-            } else {
-                console.log('YouTube playlist error:', err.message);
-            }
-            return [];
+        if (err.message.includes('invalid_grant')) {
+            console.log('YouTube token expired, visit:', authUrl);
+            wss.clients.forEach((client) => {
+                if(client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        type: 'auth-required',
+                        authUrl: authUrl
+                    }));
+                }
+            });
+        } else {
+            console.log('YouTube playlist error:', err.message);
         }
+        return [];
     }
 }
 
