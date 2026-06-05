@@ -9,7 +9,7 @@
     <h1>RBPS Control Panel</h1>
 
     <h2>Twitch Settings</h2>
-    <lable>Client ID</lable>
+    <label>Client ID</label>
     <input type="text" id="twitch-client-id" placeholder="Twitch Client ID">
 
     <label>Client Secret</label>
@@ -33,6 +33,11 @@
 
     <label>Refresh Token</label>
     <input type="text" id="youtube-refresh-token" placeholder="YouTube Refresh Token">
+
+    <div id="reauth-section" style="display:none;">
+        <p> YouTube token expired or missing </p>
+        <button id="reauth-btn">Reauthorize YouTube</button>
+    </div>
 
     <button onclick="saveSettings()">Save Settings</button>
     <button onclick="startServer()">Launch</button>

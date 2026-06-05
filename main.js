@@ -19,6 +19,7 @@ const oauth2Client = new google.auth.OAuth2(
 );
 const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline', 
+    prompt: 'consent',
     scope: ['https://www.googleapis.com/auth/youtube.readonly']
 });
 //console.log('Authorize your YouTube account by visiting: ', authUrl);
@@ -38,9 +39,9 @@ const redemptions = [
 //#endregion
 
 //#region Variables
-const RECENT_BUFFER = 15;
+const RECENT_BUFFER = 25;
 const MENU_COOLDOWN = 15000;
-let currentSkin = 'Zuko-Haruki'
+let currentSkin = 'Zuko-Haruki';
 let pointsPool = 0;
 let lastMenuCall = 0;
 let intervalID;
@@ -86,6 +87,8 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
+app.use(express.static('.'))
+
 wss.on('connection', (ws) => {
     console.log('Widget Connected');
     console.log('Playlist length on connection:', streamPlaylist.length);
@@ -123,14 +126,11 @@ app.get('/auth/callback', async (req, res) =>{
     const { tokens } = await oauth2Client.getToken(code);
 
     const envContent = fs.readFileSync('.env', 'utf8');
-    const updateEnv = envContent.replace(
-        /YOUTUBE_REFRESH_TOKEN=.*/,
-        `YOUTUBE_REFRESH_TOKEN=${tokens.refresh_token}`
-    );
+    const updateEnv = envContent.replace(/YOUTUBE_REFRESH_TOKEN=.*/, `YOUTUBE_REFRESH_TOKEN=${tokens.refresh_token}`);
     fs.writeFileSync('.env', updateEnv);
 
     oauth2Client.setCredentials({ refresh_token: tokens.refresh_token });
-    //console.log('Refresh token', tokens.refresh_token);
+    console.log('Refresh token', tokens.refresh_token);
     //res.send('Authorization successful! Check your terminal for the refresh token')
     res.send('Authorization successful! You can close this tab and return to RBPS.');
 });
@@ -521,6 +521,7 @@ async function startServer() {
     console.log('Twitch token acquired');
     await client.connect();
     console.log('Bot connected to chat')
+    await new Promise(resolve => setTimeout(resolve, 6000))
     streamPlaylist = await getPlaylist();
     if (streamPlaylist. length === 0) {
         console.log('YouTube music unavailable - music feature disabled')
