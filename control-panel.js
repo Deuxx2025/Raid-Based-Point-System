@@ -21,7 +21,9 @@ function loadExistingSettings() {
             'TWITCH_BOT_TOKEN': 'twitch-bot-token',
             'YOUTUBE_CLIENT_ID': 'youtube-client-id',
             'YOUTUBE_CLIENT_SECRET': 'youtube-client-secret',
-            'YOUTUBE_REFRESH_TOKEN': 'youtube-refresh-token'
+            'YOUTUBE_REFRESH_TOKEN': 'youtube-refresh-token',
+            'YOUTUBE_STREAM_PLAYLIST': 'youtube-playlist-id',
+            'YOUTUBE_REDEEMABLE_PLAYLIST': 'youtube-redeemable-id'
         };
 
         if (inputMap[key]) {
@@ -39,7 +41,9 @@ TWITCH_BOT_TOKEN=${document.getElementById('twitch-bot-token').value}
 YOUTUBE_CLIENT_ID=${document.getElementById('youtube-client-id').value}
 YOUTUBE_CLIENT_SECRET=${document.getElementById('youtube-client-secret').value}
 YOUTUBE_REDIRECT_URI=http://localhost:3000/auth/callback
-YOUTUBE_REFRESH_TOKEN=${document.getElementById('youtube-refresh-token').value}`
+YOUTUBE_REFRESH_TOKEN=${document.getElementById('youtube-refresh-token').value}
+YOUTUBE_STREAM_PLAYLIST=${document.getElementById('youtube-playlist-id').value}
+YOUTUBE_REDEEMABLE_PLAYLIST=${document.getElementById('youtube-redeemable-id').value}`
 
     fs.writeFileSync('.env', env);
 }

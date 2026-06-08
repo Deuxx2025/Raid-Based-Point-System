@@ -110,15 +110,6 @@ wss.on('connection', (ws) => {
 
 if (!process.env.YOUTUBE_REFRESH_TOKEN) {
     console.log('No YouTube token found, visit:', authUrl);
-
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({
-                type: 'auth-required',
-                authUrl: authUrl
-            }));
-        }
-    });
 }
 
 app.get('/auth/callback', async (req, res) =>{
@@ -355,7 +346,7 @@ async function getPlaylist() {
         while (allItems.length < 200) {
             const response = await youtube.playlistItems.list({
                 part: 'snippet',
-                playlistId: 'LL',
+                playlistId: process.env.YOUTUBE_STREAM_PLAYLIST || 'LL',
                 maxResults: 50,
                 pageToken: nextPageToken || undefined
             });
@@ -383,6 +374,15 @@ async function getPlaylist() {
             });
         } else {
             console.log('YouTube playlist error:', err.message);
+
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        type: 'auth-required',
+                        authUrl: authUrl
+                    }));
+                }
+            });
         }
         return [];
     }
@@ -393,7 +393,7 @@ async function getRedeemablePlaylist() {
         const youtube = google.youtube({ version: 'v3', auth: oauth2Client});
         const response = await youtube.playlistItems.list({
             part: 'snippet',
-            playlistId: 'PLgQm9vyJY2HKijIDLTGMq_9l4iLgKPeQj',
+            playlistId: process.env.YOUTUBE_REDEEMABLE_PLAYLIST,
             maxResults: 50
         });
 
