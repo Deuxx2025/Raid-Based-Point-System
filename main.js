@@ -41,6 +41,7 @@ const redemptions = [
 //#region Variables
 const RECENT_BUFFER = 25;
 const MENU_COOLDOWN = 15000;
+let pendingAuthUrl = null;
 let currentSkin = 'Zuko-Haruki';
 let pointsPool = 0;
 let lastMenuCall = 0;
@@ -93,6 +94,10 @@ wss.on('connection', (ws) => {
     console.log('Widget Connected');
     console.log('Playlist length on connection:', streamPlaylist.length);
 
+    if (pendingAuthUrl) {
+        ws.send(JSON.stringify({ type: 'auth-required', authUrl: pendingAuthUrl }));
+    }
+
     ws.on('message', (message) => {
         const data = JSON.parse(message);
         if (data.songEnded) {
@@ -110,18 +115,31 @@ wss.on('connection', (ws) => {
 
 if (!process.env.YOUTUBE_REFRESH_TOKEN) {
     console.log('No YouTube token found, visit:', authUrl);
+    pendingAuthUrl = authUrl;
 }
 
 app.get('/auth/callback', async (req, res) =>{
     const { code } = req.query;
     const { tokens } = await oauth2Client.getToken(code);
 
+    oauth2Client.setCredentials({ refresh_token: tokens.refresh_token });
+
     const envContent = fs.readFileSync('.env', 'utf8');
     const updateEnv = envContent.replace(/YOUTUBE_REFRESH_TOKEN=.*/, `YOUTUBE_REFRESH_TOKEN=${tokens.refresh_token}`);
     fs.writeFileSync('.env', updateEnv);
 
-    oauth2Client.setCredentials({ refresh_token: tokens.refresh_token });
-    console.log('Refresh token', tokens.refresh_token);
+    streamPlaylist = await getPlaylist();
+    redeemablePlaylist = await getRedeemablePlaylist();
+
+    pendingAuthUrl = null;
+
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'youtube-connected' }))
+        }
+    })
+
+    //console.log('Refresh token', tokens.refresh_token);
     //res.send('Authorization successful! Check your terminal for the refresh token')
     res.send('Authorization successful! You can close this tab and return to RBPS.');
 });
@@ -362,27 +380,15 @@ async function getPlaylist() {
         console.log('Playlist loaded:', allItems.length, 'songs');
         return allItems;
     } catch (err) {
-        if (err.message.includes('invalid_grant')) {
-            console.log('YouTube token expired, visit:', authUrl);
-            wss.clients.forEach((client) => {
-                if(client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({
-                        type: 'auth-required',
-                        authUrl: authUrl
-                    }));
-                }
-            });
-        } else {
-            console.log('YouTube playlist error:', err.message);
+        console.log('YouTube playlist error', err.message);
 
+        if (err.message.includes('invalid_grant')) {
+            pendingAuthUrl = authUrl;
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({
-                        type: 'auth-required',
-                        authUrl: authUrl
-                    }));
+                    client.send(JSON.stringify({ type: 'auth-required', authUrl }))
                 }
-            });
+            })
         }
         return [];
     }

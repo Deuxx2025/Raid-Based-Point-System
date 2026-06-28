@@ -65,6 +65,11 @@ function connectWebSocket() {
                 ipcRenderer.send('open-auth-url', data.authUrl);
             };   
         }
+
+        if (data.type === 'youtube-connected') {
+            document.getElementById('reauth-section').style.display = 'none';
+            loadExistingSettings();
+        }
     };
 }
 
